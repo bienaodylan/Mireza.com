@@ -194,9 +194,9 @@ export function ProductDetailPage({ slug }: { slug: string }) {
       </div>
 
       {/* 3-Column Layout: Left (Vertical Previews + Title, XOF Price, Description) | Middle (Adaptive Images) | Right (Selectors, Add to Bag & Info) */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(300px,370px)_minmax(0,1fr)_minmax(290px,350px)] xl:grid-cols-[minmax(330px,400px)_minmax(0,1fr)_minmax(320px,380px)] gap-6 xl:gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,0.9fr)_minmax(0,1.35fr)_minmax(280px,0.9fr)] xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.35fr)_minmax(300px,0.95fr)] gap-5 md:gap-7 xl:gap-10 items-stretch">
         {/* LEFT COLUMN (Vertical Sticky Previews + Title, Price in XOF, Description) */}
-        <div className="lg:sticky lg:top-24 flex flex-col lg:flex-row gap-4 xl:gap-5 items-start order-2 lg:order-1">
+        <div className="lg:sticky lg:top-24 lg:min-h-[calc(100vh-6rem)] lg:self-center flex flex-col lg:flex-row lg:justify-center gap-4 xl:gap-5 items-start order-2 lg:order-1">
           {images.length > 0 && (
             <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-16 shrink-0 overflow-x-auto lg:overflow-visible">
               {images.map((img, i) => (
@@ -256,7 +256,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
         </div>
 
         {/* MIDDLE COLUMN (Adaptive High-Resolution Images — zero frames, zero borders) */}
-        <div className="space-y-2 order-1 lg:order-2">
+        <div className="space-y-3 order-1 lg:order-2 min-w-0">
           {images.length > 0 ? (
             images.map((img, i) => (
               <div
@@ -265,13 +265,13 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                   imageRefs.current[i] = el;
                 }}
                 data-img-index={i}
-                className="w-full bg-[#F7F7F7] rounded-none overflow-hidden"
+                className="w-full aspect-[4/5] bg-[#F7F7F7] rounded-none overflow-hidden"
               >
                 <img
                   src={img}
                   alt={`${product.name} vue ${i + 1}`}
                   referrerPolicy="no-referrer"
-                  className="w-full h-auto block"
+                  className="w-full h-full object-contain block"
                 />
               </div>
             ))
@@ -283,7 +283,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
         </div>
 
         {/* RIGHT COLUMN (Sticky Color Selector, Size, Qty, Add to Bag & Payment Info) */}
-        <div className="lg:sticky lg:top-24 space-y-6 order-3">
+        <div className="lg:sticky lg:top-24 lg:min-h-[calc(100vh-6rem)] lg:self-center flex flex-col justify-center space-y-7 order-3">
           {/* SHEIN-style Worn Garment Color Selector — Square Thumbnails */}
           {displaySwatches.length > 0 && (
             <div className="space-y-3">
@@ -459,7 +459,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
             À Découvrir Aussi
           </p>
           <h2 className="font-editorial text-3xl text-black mb-6">Complementary Pieces</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 xl:gap-6">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} variants={getProductVariants(p.id)} />
             ))}
