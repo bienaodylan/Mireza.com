@@ -118,7 +118,7 @@ export function ProductCard({ product, variants }: ProductCardProps) {
       {/* Frameless Adaptive Media Surface */}
       <div
         onClick={() => navigate(`/product/${product.slug}`)}
-        className="relative w-full bg-[#F7F7F7] rounded-none overflow-hidden cursor-pointer"
+        className="relative w-full aspect-[4/5] bg-[#F7F7F7] rounded-none overflow-hidden cursor-pointer"
       >
         {primaryImage && !imgError ? (
           <>
@@ -127,7 +127,7 @@ export function ProductCard({ product, variants }: ProductCardProps) {
               alt={product.name}
               referrerPolicy="no-referrer"
               onError={() => setImgError(true)}
-              className={`w-full h-auto block transition-all duration-500 ease-out ${
+              className={`absolute inset-0 w-full h-full object-contain block transition-all duration-500 ease-out ${
                 secondaryImage
                   ? 'group-hover:opacity-0'
                   : 'group-hover:scale-[1.03]'
@@ -195,7 +195,7 @@ export function ProductCard({ product, variants }: ProductCardProps) {
       </div>
 
       {/* Minimal Typography & Square Color Indicators */}
-      <div className="px-1.5 pt-2 pb-3 flex flex-col gap-1">
+      <div className="px-2 pt-3 pb-5 flex flex-col gap-1.5">
         <button
           type="button"
           onClick={() => navigate(`/product/${product.slug}`)}
