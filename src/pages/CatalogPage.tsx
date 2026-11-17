@@ -154,7 +154,7 @@ export function CatalogPage({ mode, categorySlug }: CatalogPageProps) {
         : 'View All';
 
   return (
-    <main className="pt-20 pb-20 max-w-[1440px] mx-auto px-2 sm:px-4 md:px-6 min-h-screen">
+    <main className="pt-20 pb-20 max-w-[1600px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 min-h-screen">
       {/* Collection Title & Filter|Sort Trigger — Zero Border Lines */}
       <div className="pt-6 pb-3 px-1 flex items-center justify-between gap-4">
         <div className="flex items-start gap-1">
@@ -227,7 +227,7 @@ export function CatalogPage({ mode, categorySlug }: CatalogPageProps) {
 
       {/* Full-Width 4-Column Tightly-Packed Grid */}
       {loadingCatalog ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 xl:gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="aspect-square bg-[#F7F7F7] animate-pulse" />
           ))}
@@ -246,7 +246,7 @@ export function CatalogPage({ mode, categorySlug }: CatalogPageProps) {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 xl:gap-6">
           {filteredProducts.map((p) => (
             <ProductCard
               key={p.id}
