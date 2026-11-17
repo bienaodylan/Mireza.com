@@ -194,9 +194,9 @@ export function ProductDetailPage({ slug }: { slug: string }) {
       </div>
 
       {/* 3-Column Layout: Left (Vertical Previews + Title, XOF Price, Description) | Middle (Adaptive Images) | Right (Selectors, Add to Bag & Info) */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,0.9fr)_minmax(0,1.35fr)_minmax(280px,0.9fr)] xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.35fr)_minmax(300px,0.95fr)] gap-5 md:gap-7 xl:gap-10 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(260px,0.9fr)_minmax(0,1.35fr)_minmax(280px,0.9fr)] xl:grid-cols-[minmax(300px,0.95fr)_minmax(0,1.35fr)_minmax(300px,0.95fr)] gap-5 md:gap-7 xl:gap-10 items-start">
         {/* LEFT COLUMN (Vertical Sticky Previews + Title, Price in XOF, Description) */}
-        <div className="lg:sticky lg:top-24 lg:min-h-[calc(100vh-6rem)] lg:self-center flex flex-col lg:flex-row lg:justify-center gap-4 xl:gap-5 items-start order-2 lg:order-1">
+        <div className="lg:sticky lg:top-24 self-start flex flex-col lg:flex-row gap-4 xl:gap-5 items-start order-2 lg:order-1">
           {images.length > 0 && (
             <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-16 shrink-0 overflow-x-auto lg:overflow-visible">
               {images.map((img, i) => (
@@ -283,7 +283,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
         </div>
 
         {/* RIGHT COLUMN (Sticky Color Selector, Size, Qty, Add to Bag & Payment Info) */}
-        <div className="lg:sticky lg:top-24 lg:min-h-[calc(100vh-6rem)] lg:self-center flex flex-col justify-center space-y-7 order-3">
+        <div className="lg:sticky lg:top-24 self-start flex flex-col space-y-7 order-3">
           {/* SHEIN-style Worn Garment Color Selector — Square Thumbnails */}
           {displaySwatches.length > 0 && (
             <div className="space-y-3">
