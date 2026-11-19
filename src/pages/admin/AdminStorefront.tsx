@@ -31,7 +31,7 @@ const BUILTIN_SECTION_LABELS: Record<string, string> = {
   hero: 'Bannière Hero Principale',
   next_drop: 'Double Bloc Nouvelles Collections (2 Collections)',
   categories: 'Catégories (Grille 4 Blocs + Bannières Jersey / Bikini / Set)',
-  fashion_discovery: 'Découverte Fashion Interactive & Guide des Genres',
+  fashion_discovery: 'Défilé Mannequins 3D (Carousel Produits)',
   brand_intro: 'Sur Nous · Identité MIREZA (Fond Noir & Texte Rose)',
   new_drop: 'Grille Produits Nouvelle Collection',
   featured: 'Grille Pièces Vedettes',
@@ -352,7 +352,7 @@ export function AdminStorefront({
                   <option value="hero">Bannière Hero Principale</option>
                   <option value="next_drop">Double Bloc Nouvelles Collections (2 Collections)</option>
                   <option value="categories">Catégories + Bannières Jersey / Bikini / Set</option>
-                  <option value="fashion_discovery">Découverte Fashion Interactive &amp; Guide des Genres</option>
+                  <option value="fashion_discovery">Défilé Mannequins 3D (Carousel Produits)</option>
                   <option value="brand_intro">Sur Nous · Identité MIREZA (Noir &amp; Rose)</option>
                   <option value="new_drop">Grille Produits Nouvelle Collection</option>
                   <option value="featured">Grille Pièces Vedettes</option>
