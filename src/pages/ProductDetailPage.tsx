@@ -198,84 +198,86 @@ export function ProductDetailPage({ slug }: { slug: string }) {
     .slice(0, 4);
 
   return (
-    <main className="pt-20 pb-24 max-w-[1440px] mx-auto px-4 md:px-8 bg-white">
-      {/* Minimal Breadcrumb */}
-      <div className="py-4 mb-4 flex items-center gap-3 text-xs font-light text-black/60">
-        <button
-          type="button"
-          onClick={() => navigate('/shop')}
-          className="inline-flex items-center gap-1.5 font-bold hover:text-black cursor-pointer"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Shop</span>
-        </button>
-        <span>/</span>
-        <span className="font-bold text-[#D17493]">{product.categoryName}</span>
-        <span>/</span>
-        <span className="font-bold text-black">{product.name}</span>
-      </div>
-
-      {/* 3-Column Layout: Left (Vertical Previews + Title, XOF Price, Description) | Middle (Smart Background-Aware Images) | Right (Minimal Color Circles, Sizes, Qty & Add to Bag) */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)_minmax(280px,340px)] xl:grid-cols-[minmax(310px,390px)_minmax(0,1fr)_minmax(300px,360px)] gap-6 xl:gap-8 items-start">
-        {/* LEFT COLUMN (Vertical Sticky Previews + Title, Price in XOF, Description) */}
-        <div className="lg:sticky lg:top-24 flex flex-col lg:flex-row gap-4 xl:gap-5 items-start order-2 lg:order-1">
-          {images.length > 0 && (
-            <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-16 shrink-0 overflow-x-auto lg:overflow-visible">
-              {images.map((img, i) => {
-                const bgInfo = imageBgMap[img];
-                const isCutout = bgInfo ? bgInfo.hasTransparentOrWhiteBg : false;
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => scrollToImage(i)}
-                    aria-label={`Afficher vue ${i + 1}`}
-                    className={`w-16 lg:w-full aspect-[4/5] shrink-0 rounded-none bg-white overflow-hidden transition-all cursor-pointer ${
-                      activeImageIdx === i
-                        ? 'ring-2 ring-black opacity-100'
-                        : 'opacity-55 hover:opacity-100'
-                    }`}
-                  >
-                    <img
-                      src={img}
-                      alt={`${product.name} miniature ${i + 1}`}
-                      referrerPolicy="no-referrer"
-                      className={`w-full h-full block ${
-                        isCutout ? 'object-contain p-1 bg-white' : 'object-cover object-top'
+    <main className="pt-16 pb-24 max-w-[1440px] mx-auto px-4 md:px-8 bg-white">
+      {/* 3-Column Vertically Centered Layout: Left (Back/Breadcrumb + Previews + Title, XOF Price, Description) | Middle (Product Visuals) | Right (Color Circles, Sizes, Qty & Add to Bag) */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)_minmax(280px,340px)] xl:grid-cols-[minmax(310px,390px)_minmax(0,1fr)_minmax(300px,360px)] gap-6 xl:gap-10 items-start">
+        {/* LEFT COLUMN — Vertically Centered from Back/Breadcrumb down to Description */}
+        <div className="lg:sticky lg:top-16 lg:min-h-[calc(100vh-4rem)] lg:flex lg:flex-col lg:justify-center py-4 lg:py-8 order-2 lg:order-1">
+          <div className="flex flex-col lg:flex-row gap-4 xl:gap-5 lg:items-center w-full">
+            {images.length > 0 && (
+              <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-16 shrink-0 overflow-x-auto lg:overflow-visible">
+                {images.map((img, i) => {
+                  const bgInfo = imageBgMap[img];
+                  const isCutout = bgInfo ? bgInfo.hasTransparentOrWhiteBg : false;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => scrollToImage(i)}
+                      aria-label={`Afficher vue ${i + 1}`}
+                      className={`w-16 lg:w-full aspect-[4/5] shrink-0 rounded-none bg-white overflow-hidden transition-all cursor-pointer ${
+                        activeImageIdx === i
+                          ? 'ring-2 ring-black opacity-100'
+                          : 'opacity-55 hover:opacity-100'
                       }`}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="flex-1 min-w-0 space-y-4">
-            <div className="space-y-2">
-              <h1 className="font-editorial text-2xl xl:text-3xl text-black leading-tight">
-                {product.name}
-              </h1>
-
-              <div className="flex items-baseline gap-3 pt-0.5 tabular-nums">
-                <span className="text-lg xl:text-xl font-bold text-black">
-                  {formatXOF(unitPrice)}
-                </span>
-                {compareAt && compareAt > unitPrice && (
-                  <span className="text-sm font-light text-black/50 line-through">
-                    {formatXOF(compareAt)}
-                  </span>
-                )}
+                    >
+                      <img
+                        src={img}
+                        alt={`${product.name} miniature ${i + 1}`}
+                        referrerPolicy="no-referrer"
+                        className={`w-full h-full block ${
+                          isCutout ? 'object-contain p-1 bg-white' : 'object-cover object-top'
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
               </div>
-            </div>
+            )}
 
-            <p className="text-xs xl:text-sm font-light text-black/80 leading-relaxed">
-              {product.description}
-            </p>
+            <div className="flex-1 min-w-0 space-y-4">
+              {/* Back + Category + Product Name Breadcrumb */}
+              <div className="flex items-center flex-wrap gap-2 text-xs font-light text-black/60">
+                <button
+                  type="button"
+                  onClick={() => navigate('/shop')}
+                  className="inline-flex items-center gap-1.5 font-bold hover:text-black cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Shop</span>
+                </button>
+                <span>/</span>
+                <span className="font-bold text-[#D17493]">{product.categoryName}</span>
+                <span>/</span>
+                <span className="font-bold text-black">{product.name}</span>
+              </div>
+
+              <div className="space-y-2">
+                <h1 className="font-editorial text-2xl xl:text-3xl text-black leading-tight">
+                  {product.name}
+                </h1>
+
+                <div className="flex items-baseline gap-3 pt-0.5 tabular-nums">
+                  <span className="text-lg xl:text-xl font-bold text-black">
+                    {formatXOF(unitPrice)}
+                  </span>
+                  {compareAt && compareAt > unitPrice && (
+                    <span className="text-sm font-light text-black/50 line-through">
+                      {formatXOF(compareAt)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-xs xl:text-sm font-light text-black/80 leading-relaxed">
+                {product.description}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* MIDDLE COLUMN (Smart Background Detection: Seamless White for Cutouts, Clean Full-Bleed for Photo Backgrounds) */}
-        <div className="space-y-3 order-1 lg:order-2">
+        {/* MIDDLE COLUMN — Centered Product Visuals (Smart Background Detection) */}
+        <div className="lg:min-h-[calc(100vh-4rem)] flex flex-col justify-center gap-3 py-4 lg:py-8 order-1 lg:order-2">
           {images.length > 0 ? (
             images.map((img, i) => {
               const bgInfo = imageBgMap[img];
@@ -309,110 +311,112 @@ export function ProductDetailPage({ slug }: { slug: string }) {
           )}
         </div>
 
-        {/* RIGHT COLUMN (Ultra-Minimal: Color Circles Only, Size Buttons Only, Qty & Add to Bag) */}
-        <div className="lg:sticky lg:top-24 space-y-6 order-3">
-          {/* Pure Color Circles — No Title, No Color Name Text */}
-          {displaySwatches.length > 0 && (
-            <div className="flex items-center gap-3 flex-wrap">
-              {displaySwatches.map((c, cIdx) => {
-                const selected = c.name === activeColorLabel;
+        {/* RIGHT COLUMN — Vertically Centered Color Circles, Size Selector & Quantity/Add to Bag */}
+        <div className="lg:sticky lg:top-16 lg:min-h-[calc(100vh-4rem)] lg:flex lg:flex-col lg:justify-center py-4 lg:py-8 order-3">
+          <div className="space-y-6 w-full">
+            {/* Pure Color Circles — No Title, No Color Name Text */}
+            {displaySwatches.length > 0 && (
+              <div className="flex items-center gap-3 flex-wrap">
+                {displaySwatches.map((c, cIdx) => {
+                  const selected = c.name === activeColorLabel;
+                  return (
+                    <button
+                      key={c.name}
+                      type="button"
+                      title={c.name}
+                      aria-label={c.name}
+                      onClick={() => {
+                        if (hasCustomVariantColors) {
+                          setSelectedColor(c.name);
+                          if (displaySwatches.length > 1 && images.length > cIdx) {
+                            scrollToImage(cIdx);
+                          }
+                          const match = variants.find(
+                            (v) => v.color === c.name && v.size === selectedSize
+                          );
+                          if (!match) {
+                            const firstForColor = variants.find((v) => v.color === c.name);
+                            if (firstForColor) setSelectedSize(firstForColor.size);
+                          }
+                          setQty(1);
+                        }
+                      }}
+                      className={`w-7 h-7 rounded-full border border-black/15 transition-all cursor-pointer ${
+                        selected
+                          ? 'ring-2 ring-black ring-offset-2 ring-offset-white scale-105'
+                          : 'opacity-80 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: c.hex }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Pure Size Grid — No Title, No Stock Label */}
+            <div className="grid grid-cols-4 gap-2">
+              {sizesForColor.map((v) => {
+                const vAvail = getAvailableStock(v);
+                const disabled = !product.isPreorder && vAvail <= 0;
+                const active = activeVariant?.id === v.id;
                 return (
                   <button
-                    key={c.name}
+                    key={v.id}
                     type="button"
-                    title={c.name}
-                    aria-label={c.name}
+                    disabled={disabled}
                     onClick={() => {
-                      if (hasCustomVariantColors) {
-                        setSelectedColor(c.name);
-                        if (displaySwatches.length > 1 && images.length > cIdx) {
-                          scrollToImage(cIdx);
-                        }
-                        const match = variants.find(
-                          (v) => v.color === c.name && v.size === selectedSize
-                        );
-                        if (!match) {
-                          const firstForColor = variants.find((v) => v.color === c.name);
-                          if (firstForColor) setSelectedSize(firstForColor.size);
-                        }
-                        setQty(1);
-                      }
+                      setSelectedSize(v.size);
+                      setQty(1);
                     }}
-                    className={`w-7 h-7 rounded-full border border-black/15 transition-all cursor-pointer ${
-                      selected
-                        ? 'ring-2 ring-black ring-offset-2 ring-offset-white scale-105'
-                        : 'opacity-80 hover:opacity-100'
+                    className={`py-2.5 rounded-none text-xs font-bold transition-colors ${
+                      disabled
+                        ? 'bg-black/[0.04] text-black/35 line-through cursor-not-allowed'
+                        : active
+                          ? 'bg-black text-white cursor-pointer'
+                          : 'bg-black/[0.05] text-black hover:bg-black hover:text-white cursor-pointer'
                     }`}
-                    style={{ backgroundColor: c.hex }}
-                  />
+                  >
+                    {v.size}
+                  </button>
                 );
               })}
             </div>
-          )}
 
-          {/* Pure Size Grid — No Title, No Stock Label */}
-          <div className="grid grid-cols-4 gap-2">
-            {sizesForColor.map((v) => {
-              const vAvail = getAvailableStock(v);
-              const disabled = !product.isPreorder && vAvail <= 0;
-              const active = activeVariant?.id === v.id;
-              return (
+            {/* Quantity & Add to Bag — Strictly Square */}
+            <div className="flex items-stretch gap-2 pt-1">
+              <div className="flex items-center rounded-none bg-black/[0.05] px-1">
                 <button
-                  key={v.id}
                   type="button"
-                  disabled={disabled}
-                  onClick={() => {
-                    setSelectedSize(v.size);
-                    setQty(1);
-                  }}
-                  className={`py-2.5 rounded-none text-xs font-bold transition-colors ${
-                    disabled
-                      ? 'bg-black/[0.04] text-black/35 line-through cursor-not-allowed'
-                      : active
-                        ? 'bg-black text-white cursor-pointer'
-                        : 'bg-black/[0.05] text-black hover:bg-black hover:text-white cursor-pointer'
-                  }`}
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  aria-label="Decrease quantity"
+                  className="w-10 h-11 flex items-center justify-center hover:opacity-65 cursor-pointer"
                 >
-                  {v.size}
+                  <Minus className="w-3.5 h-3.5" />
                 </button>
-              );
-            })}
-          </div>
+                <span className="w-8 text-center text-sm font-bold tabular-nums">{qty}</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQty((q) =>
+                      product.isPreorder ? q + 1 : Math.min(Math.max(1, available), q + 1)
+                    )
+                  }
+                  aria-label="Increase quantity"
+                  className="w-10 h-11 flex items-center justify-center hover:opacity-65 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
-          {/* Quantity & Add to Bag — Strictly Square */}
-          <div className="flex items-stretch gap-2 pt-1">
-            <div className="flex items-center rounded-none bg-black/[0.05] px-1">
               <button
                 type="button"
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-                aria-label="Decrease quantity"
-                className="w-10 h-11 flex items-center justify-center hover:opacity-65 cursor-pointer"
+                disabled={!canPurchase}
+                onClick={handleAdd}
+                className="flex-1 py-3.5 px-6 rounded-none bg-black text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-black/85 transition-colors disabled:bg-black/20 disabled:text-black/45 cursor-pointer disabled:cursor-not-allowed"
               >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <span className="w-8 text-center text-sm font-bold tabular-nums">{qty}</span>
-              <button
-                type="button"
-                onClick={() =>
-                  setQty((q) =>
-                    product.isPreorder ? q + 1 : Math.min(Math.max(1, available), q + 1)
-                  )
-                }
-                aria-label="Increase quantity"
-                className="w-10 h-11 flex items-center justify-center hover:opacity-65 cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
+                {canPurchase ? 'Add to Bag' : 'Sold Out'}
               </button>
             </div>
-
-            <button
-              type="button"
-              disabled={!canPurchase}
-              onClick={handleAdd}
-              className="flex-1 py-3.5 px-6 rounded-none bg-black text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-black/85 transition-colors disabled:bg-black/20 disabled:text-black/45 cursor-pointer disabled:cursor-not-allowed"
-            >
-              {canPurchase ? 'Add to Bag' : 'Sold Out'}
-            </button>
           </div>
         </div>
       </div>
