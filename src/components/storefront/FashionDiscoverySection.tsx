@@ -4,69 +4,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import { formatXOF, getColorHex } from '../../lib/format';
 import { detectDominantColorsFromImageUrl, DetectedColor } from '../../lib/colorDetector';
-
-interface RunwayLook {
-  id: string;
-  productSlug: string;
-  fallbackName: string;
-  fallbackPriceXof: number;
-  fallbackDescription: string;
-  modelImageUrl: string;
-  fallbackHex: string;
-}
-
-const RUNWAY_LOOKS: RunwayLook[] = [
-  {
-    id: 'look_bresil_bikini',
-    productSlug: 'bresil-bikini',
-    fallbackName: 'Brésil Bikini',
-    fallbackPriceXof: 25000,
-    fallbackDescription:
-      'Bikini emblématique vert émeraude à bordures jaune soleil, pensé pour une allure solaire et sculptante.',
-    modelImageUrl: '/assets/mireza/runway_bresil_bikini.jpg',
-    fallbackHex: '#0E6B47',
-  },
-  {
-    id: 'look_bahamas_jersey',
-    productSlug: 'bahamas-jersey',
-    fallbackName: 'Bahamas JERSEY',
-    fallbackPriceXof: 35000,
-    fallbackDescription:
-      'Jersey mixte oversize en maille respirante noir et jaune MIREZA 19, inspiré des îles caribéennes.',
-    modelImageUrl: '/assets/mireza/runway_bahamas_jersey.jpg',
-    fallbackHex: '#181818',
-  },
-  {
-    id: 'look_saint_lucia_set',
-    productSlug: 'bahamas-t-shirt-copie-1',
-    fallbackName: 'Saint Lucia FULL SET',
-    fallbackPriceXof: 32000,
-    fallbackDescription:
-      'Ensemble coordonné baby tee raglan bleu ciel & jaune accompagné de son short cordon assorti.',
-    modelImageUrl: '/assets/mireza/runway_saint_lucia_set.jpg',
-    fallbackHex: '#0095D9',
-  },
-  {
-    id: 'look_jamaica_jersey',
-    productSlug: 'jamaica-jersey',
-    fallbackName: 'Jamaïca JERSEY',
-    fallbackPriceXof: 35000,
-    fallbackDescription:
-      'Maillot oversize en maille technique vert tropical et jaune soleil MIREZA 19.',
-    modelImageUrl: '/assets/mireza/runway_jamaica_jersey.jpg',
-    fallbackHex: '#1D7A46',
-  },
-  {
-    id: 'look_ivoire_jersey',
-    productSlug: 'cote-d-ivoire-jersey',
-    fallbackName: 'Côte d’Ivoire JERSEY',
-    fallbackPriceXof: 35000,
-    fallbackDescription:
-      'Jersey mixte oversize blanc, vert et orange 225, taillé pour conjuguer confort et identité.',
-    modelImageUrl: '/assets/mireza/runway_ivoire_jersey.jpg',
-    fallbackHex: '#F26A1B',
-  },
-];
+import { Product } from '../../types/commerce';
 
 function getCircularOffset(index: number, active: number, total: number): number {
   let diff = index - active;
@@ -82,38 +20,52 @@ export function FashionDiscoverySection() {
   const [detectedColorsMap, setDetectedColorsMap] = useState<Record<string, DetectedColor[]>>({});
   const [selectedSwatchHex, setSelectedSwatchHex] = useState<string>('');
 
-  const total = RUNWAY_LOOKS.length;
-  const activeLook = RUNWAY_LOOKS[activeIdx];
+  // Exclusively showcase live Nouvelle Collection (isNewDrop) products, ordered by newDropOrder
+  const newCollectionProducts = useMemo<Product[]>(() => {
+    const newDropList = products
+      .filter((p) => p.isNewDrop && p.status !== 'archived')
+      .sort((a, b) => (a.newDropOrder || 999) - (b.newDropOrder || 999));
 
-  const linkedProduct = useMemo(
-    () => products.find((p) => p.slug === activeLook.productSlug) || null,
-    [products, activeLook.productSlug]
-  );
+    if (newDropList.length > 0) return newDropList;
+    return products.slice(0, 6);
+  }, [products]);
 
-  const linkedVariants = useMemo(
-    () => (linkedProduct ? getProductVariants(linkedProduct.id).filter((v) => v.isActive) : []),
-    [linkedProduct, getProductVariants]
-  );
+  const total = newCollectionProducts.length;
+  const safeActiveIdx = total > 0 ? Math.min(activeIdx, total - 1) : 0;
+  const activeProduct = newCollectionProducts[safeActiveIdx] || null;
 
-  // Detect authentic garment colors automatically for each linked product
   useEffect(() => {
+    if (activeIdx >= total && total > 0) {
+      setActiveIdx(0);
+    }
+  }, [activeIdx, total]);
+
+  const activeVariants = useMemo(
+    () => (activeProduct ? getProductVariants(activeProduct.id).filter((v) => v.isActive) : []),
+    [activeProduct, getProductVariants]
+  );
+
+  // Automatically extract authentic garment swatch colors from the product image
+  useEffect(() => {
+    if (!activeProduct) return;
     let cancelled = false;
-    const imgUrl = linkedProduct?.images?.[0] || activeLook.modelImageUrl;
-    if (!imgUrl || detectedColorsMap[activeLook.id]) return;
+    const imgUrl = activeProduct.images?.[0] || activeProduct.runwayModelImageUrl || '';
+    if (!imgUrl || detectedColorsMap[activeProduct.id]) return;
 
     detectDominantColorsFromImageUrl(imgUrl, 3).then((cols) => {
       if (!cancelled && cols.length > 0) {
-        setDetectedColorsMap((prev) => ({ ...prev, [activeLook.id]: cols }));
+        setDetectedColorsMap((prev) => ({ ...prev, [activeProduct.id]: cols }));
       }
     });
     return () => {
       cancelled = true;
     };
-  }, [activeLook.id, activeLook.modelImageUrl, linkedProduct, detectedColorsMap]);
+  }, [activeProduct, detectedColorsMap]);
 
   const displaySwatches = useMemo(() => {
+    if (!activeProduct) return [];
     const variantMap = new Map<string, string>();
-    for (const v of linkedVariants) {
+    for (const v of activeVariants) {
       if (v.color && v.color !== 'Edition 01' && !variantMap.has(v.color)) {
         variantMap.set(v.color, v.colorHex || getColorHex(v.color));
       }
@@ -121,85 +73,55 @@ export function FashionDiscoverySection() {
     if (variantMap.size > 0) {
       return Array.from(variantMap.entries()).map(([name, hex]) => ({ name, hex }));
     }
-    const detected = detectedColorsMap[activeLook.id];
+    const detected = detectedColorsMap[activeProduct.id];
     if (detected && detected.length > 0) {
       return detected;
     }
-    return [{ name: activeLook.fallbackName, hex: activeLook.fallbackHex }];
-  }, [linkedVariants, detectedColorsMap, activeLook]);
+    return [{ name: activeProduct.name, hex: '#111111' }];
+  }, [activeProduct, activeVariants, detectedColorsMap]);
 
   useEffect(() => {
     if (displaySwatches.length > 0) {
       setSelectedSwatchHex(displaySwatches[0].hex);
     }
-  }, [activeIdx, displaySwatches]);
+  }, [safeActiveIdx, displaySwatches]);
+
+  if (!activeProduct || total === 0) return null;
 
   const goPrev = () => setActiveIdx((prev) => (prev - 1 + total) % total);
   const goNext = () => setActiveIdx((prev) => (prev + 1) % total);
 
-  const displayTitle = linkedProduct?.name || activeLook.fallbackName;
-  const displayDescription = linkedProduct?.description || activeLook.fallbackDescription;
+  const displayTitle = activeProduct.name;
+  const displayDescription = activeProduct.description;
   const displayPrice =
-    linkedProduct &&
-    typeof linkedProduct.promoPriceXof === 'number' &&
-    linkedProduct.promoPriceXof > 0 &&
-    linkedProduct.promoPriceXof < linkedProduct.regularPriceXof
-      ? linkedProduct.promoPriceXof
-      : linkedProduct?.regularPriceXof || activeLook.fallbackPriceXof;
+    typeof activeProduct.promoPriceXof === 'number' &&
+    activeProduct.promoPriceXof > 0 &&
+    activeProduct.promoPriceXof < activeProduct.regularPriceXof
+      ? activeProduct.promoPriceXof
+      : activeProduct.regularPriceXof;
 
   const compareAt =
-    linkedProduct &&
-    typeof linkedProduct.promoPriceXof === 'number' &&
-    linkedProduct.promoPriceXof > 0 &&
-    linkedProduct.promoPriceXof < linkedProduct.regularPriceXof
-      ? linkedProduct.regularPriceXof
+    typeof activeProduct.promoPriceXof === 'number' &&
+    activeProduct.promoPriceXof > 0 &&
+    activeProduct.promoPriceXof < activeProduct.regularPriceXof
+      ? activeProduct.regularPriceXof
       : null;
 
-  const targetHref = linkedProduct ? `/product/${linkedProduct.slug}` : `/product/${activeLook.productSlug}`;
+  const targetHref = `/product/${activeProduct.slug}`;
 
   return (
     <section
-      aria-label="MIREZA Runway Showcase"
-      className="relative w-full bg-white text-black overflow-hidden min-h-[680px] sm:min-h-[740px] lg:min-h-[820px] flex flex-col justify-between select-none"
+      aria-label="Nouvelle Collection MIREZA"
+      className="relative w-full bg-[#FFFFFF] text-black overflow-hidden min-h-[680px] sm:min-h-[740px] lg:min-h-[820px] flex flex-col justify-between select-none"
     >
-      {/* Subtle Pure-White Sculptural Studio Architecture Background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <svg
-          viewBox="0 0 1440 820"
-          preserveAspectRatio="xMidYMid slice"
-          className="w-full h-full"
-        >
-          <defs>
-            <radialGradient id="mirezaWhiteFloor" cx="50%" cy="84%" r="52%">
-              <stop offset="0%" stopColor="#F1F1F1" stopOpacity="0.95" />
-              <stop offset="55%" stopColor="#FAFAFA" stopOpacity="0.5" />
-              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
-            </radialGradient>
-            <linearGradient id="mirezaArchStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#EAEAEA" stopOpacity="0.85" />
-              <stop offset="50%" stopColor="#F5F5F5" stopOpacity="0.45" />
-              <stop offset="100%" stopColor="#E6E6E6" stopOpacity="0.75" />
-            </linearGradient>
-          </defs>
-          <rect width="1440" height="820" fill="#FFFFFF" />
-          {/* Concentric Sculptural White Studio Arches */}
-          <circle cx="720" cy="490" r="320" fill="none" stroke="url(#mirezaArchStroke)" strokeWidth="2" />
-          <circle cx="720" cy="490" r="460" fill="none" stroke="url(#mirezaArchStroke)" strokeWidth="2.5" />
-          <circle cx="720" cy="490" r="610" fill="none" stroke="url(#mirezaArchStroke)" strokeWidth="3" />
-          <circle cx="720" cy="490" r="780" fill="none" stroke="url(#mirezaArchStroke)" strokeWidth="2" />
-          {/* Soft White Runway Stage Floor Disc */}
-          <ellipse cx="720" cy="705" rx="640" ry="130" fill="url(#mirezaWhiteFloor)" />
-        </svg>
-      </div>
-
-      {/* 3D Perspective 5-Mannequin Runway Stage */}
-      <div className="relative z-10 flex-1 w-full min-h-[520px] sm:min-h-[620px] lg:min-h-[700px] flex items-end justify-center pt-10 pb-24 sm:pb-20">
-        {RUNWAY_LOOKS.map((look, idx) => {
-          const offset = getCircularOffset(idx, activeIdx, total);
+      {/* 100% Pure White 3D Perspective Runway Stage — Zero Grey, Zero Floor Shadows */}
+      <div className="relative z-10 flex-1 w-full bg-[#FFFFFF] min-h-[520px] sm:min-h-[620px] lg:min-h-[700px] flex items-end justify-center pt-10 pb-24 sm:pb-20">
+        {newCollectionProducts.map((product, idx) => {
+          const offset = getCircularOffset(idx, safeActiveIdx, total);
           const isCenter = offset === 0;
           const absOffset = Math.abs(offset);
+          const isVisible = absOffset <= 2;
 
-          // 3D Arc Positioning matching the reference runway composition
           const xPercent =
             offset === 0
               ? '0%'
@@ -207,29 +129,35 @@ export function FashionDiscoverySection() {
                 ? '-82%'
                 : offset === 1
                   ? '82%'
-                  : offset === -2
+                  : offset < 0
                     ? '-146%'
                     : '146%';
 
           const yPercent =
             offset === 0 ? '0%' : absOffset === 1 ? '-7%' : '-14%';
 
-          const scale = offset === 0 ? 1 : absOffset === 1 ? 0.68 : 0.46;
-          const opacity = offset === 0 ? 1 : absOffset === 1 ? 0.94 : 0.78;
-          const zIndex = offset === 0 ? 30 : absOffset === 1 ? 20 : 10;
+          const scale = offset === 0 ? 1 : absOffset === 1 ? 0.68 : absOffset === 2 ? 0.46 : 0.36;
+          const opacity = !isVisible ? 0 : offset === 0 ? 1 : absOffset === 1 ? 0.94 : 0.8;
+          const zIndex = offset === 0 ? 30 : absOffset === 1 ? 20 : absOffset === 2 ? 10 : 0;
+
+          const visualUrl = product.runwayModelImageUrl || product.images?.[0] || '';
+          const hasRunwayPhoto = Boolean(product.runwayModelImageUrl);
 
           return (
             <motion.button
-              key={look.id}
+              key={product.id}
               type="button"
               onClick={() => {
+                if (!isVisible) return;
                 if (isCenter) {
-                  navigate(targetHref);
+                  navigate(`/product/${product.slug}`);
                 } else {
                   setActiveIdx(idx);
                 }
               }}
-              aria-label={isCenter ? `Voir ${displayTitle}` : `Afficher ${look.fallbackName}`}
+              aria-label={isCenter ? `Voir ${product.name}` : `Afficher ${product.name}`}
+              aria-hidden={!isVisible}
+              tabIndex={isVisible ? 0 : -1}
               initial={false}
               animate={{
                 x: xPercent,
@@ -242,49 +170,60 @@ export function FashionDiscoverySection() {
                   ? { duration: 0.15 }
                   : { type: 'spring', stiffness: 210, damping: 26, mass: 0.9 }
               }
-              style={{ zIndex }}
-              className={`absolute bottom-14 sm:bottom-10 h-[390px] sm:h-[520px] lg:h-[630px] aspect-[3/4] flex items-end justify-center focus:outline-none cursor-pointer ${
-                absOffset === 2 ? 'hidden md:flex' : 'flex'
+              style={{
+                zIndex,
+                pointerEvents: isVisible ? 'auto' : 'none',
+              }}
+              className={`absolute bottom-14 sm:bottom-10 h-[390px] sm:h-[520px] lg:h-[630px] aspect-[3/4] flex items-end justify-center bg-transparent focus:outline-none cursor-pointer ${
+                absOffset >= 2 ? 'hidden md:flex' : 'flex'
               }`}
             >
-              <img
-                src={look.modelImageUrl}
-                alt={look.fallbackName}
-                referrerPolicy="no-referrer"
-                draggable={false}
-                className="w-full h-full object-contain object-bottom mix-blend-multiply pointer-events-none"
-              />
+              {visualUrl && (
+                <img
+                  src={visualUrl}
+                  alt={product.name}
+                  referrerPolicy="no-referrer"
+                  draggable={false}
+                  className={`w-full h-full object-contain pointer-events-none ${
+                    hasRunwayPhoto ? 'object-bottom mix-blend-multiply' : 'object-center mix-blend-multiply p-8'
+                  }`}
+                />
+              )}
             </motion.button>
           );
         })}
 
-        {/* Left & Right Circular Carousel Arrows (matching reference image) */}
-        <button
-          type="button"
-          onClick={goPrev}
-          aria-label="Mannequin précédent"
-          className="absolute left-4 sm:left-8 lg:left-12 top-1/2 -translate-y-1/2 z-40 w-11 h-11 rounded-full bg-black/[0.04] backdrop-blur-sm border border-black/10 text-black inline-flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" strokeWidth={1.6} />
-        </button>
+        {/* Left & Right Circular Carousel Arrows — Pure White */}
+        {total > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={goPrev}
+              aria-label="Produit précédent"
+              className="absolute left-4 sm:left-8 lg:left-12 top-1/2 -translate-y-1/2 z-40 w-11 h-11 rounded-full bg-[#FFFFFF] border border-black/15 text-black inline-flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" strokeWidth={1.6} />
+            </button>
 
-        <button
-          type="button"
-          onClick={goNext}
-          aria-label="Mannequin suivant"
-          className="absolute right-4 sm:right-8 lg:right-12 top-1/2 -translate-y-1/2 z-40 w-11 h-11 rounded-full bg-black/[0.04] backdrop-blur-sm border border-black/10 text-black inline-flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer"
-        >
-          <ArrowRight className="w-4 h-4" strokeWidth={1.6} />
-        </button>
+            <button
+              type="button"
+              onClick={goNext}
+              aria-label="Produit suivant"
+              className="absolute right-4 sm:right-8 lg:right-12 top-1/2 -translate-y-1/2 z-40 w-11 h-11 rounded-full bg-[#FFFFFF] border border-black/15 text-black inline-flex items-center justify-center hover:bg-black hover:text-white transition-colors cursor-pointer"
+            >
+              <ArrowRight className="w-4 h-4" strokeWidth={1.6} />
+            </button>
+          </>
+        )}
       </div>
 
-      {/* Bottom Interactive Overlay Row: Left (Product Details) | Center (Counter & Line) | Right (Color Selector + Thumbnail Dock) */}
+      {/* Bottom Interactive Overlay Row: Left (Product Details) | Center (Counter & Line) | Right (Color Selector + Pure White Thumbnail Dock) */}
       <div className="relative lg:absolute lg:inset-x-0 lg:bottom-0 z-40 px-5 sm:px-8 lg:px-12 pb-8 pt-2 flex flex-col lg:flex-row lg:items-end justify-between gap-6 pointer-events-none">
-        {/* LEFT: Linked Product Detail Module (same purity as Product Detail Page) */}
+        {/* LEFT: Live Product Details */}
         <div className="pointer-events-auto max-w-[300px] sm:max-w-[340px]">
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeLook.id}
+              key={activeProduct.id}
               initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
@@ -327,22 +266,21 @@ export function FashionDiscoverySection() {
         {/* CENTER: Minimal Slide Counter + Hairline Progress Bar */}
         <div className="pointer-events-auto flex items-center gap-3 self-start lg:self-end lg:mb-2">
           <span className="text-xs font-medium text-black tabular-nums tracking-wider">
-            {String(activeIdx + 1).padStart(2, '0')}
+            {String(safeActiveIdx + 1).padStart(2, '0')}
             <span className="text-black/35"> / {String(total).padStart(2, '0')}</span>
           </span>
           <div className="relative w-24 sm:w-28 h-[1.5px] bg-black/15 overflow-hidden">
             <motion.div
               className="absolute inset-y-0 left-0 bg-black"
               initial={false}
-              animate={{ width: `${((activeIdx + 1) / total) * 100}%` }}
+              animate={{ width: `${((safeActiveIdx + 1) / total) * 100}%` }}
               transition={{ duration: 0.3 }}
             />
           </div>
         </div>
 
-        {/* RIGHT: Minimal Color Selector Circles + Rounded Mannequin Thumbnail Dock */}
+        {/* RIGHT: Minimal Color Selector Circles + Pure White Capsule Thumbnail Dock */}
         <div className="pointer-events-auto flex flex-col items-start lg:items-end gap-3.5">
-          {/* Pure Color Selector Circles (no title, no color text) */}
           {displaySwatches.length > 0 && (
             <div className="flex items-center gap-2.5 px-1">
               {displaySwatches.map((swatch) => {
@@ -366,28 +304,34 @@ export function FashionDiscoverySection() {
             </div>
           )}
 
-          {/* Rounded Frosted Capsule Thumbnail Switcher (matching reference bottom-right dock) */}
-          <div className="rounded-full bg-black/[0.04] backdrop-blur-md border border-black/[0.08] p-1.5 flex items-center gap-1.5">
-            {RUNWAY_LOOKS.map((look, idx) => {
-              const isSelected = idx === activeIdx;
+          <div className="rounded-full bg-[#FFFFFF] border border-black/15 p-1.5 flex items-center gap-1.5 max-w-full overflow-x-auto">
+            {newCollectionProducts.map((product, idx) => {
+              const isSelected = idx === safeActiveIdx;
+              const thumbSrc = product.runwayModelImageUrl || product.images?.[0] || '';
               return (
                 <button
-                  key={look.id}
+                  key={product.id}
                   type="button"
                   onClick={() => setActiveIdx(idx)}
-                  aria-label={`Afficher ${look.fallbackName}`}
-                  className={`relative w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden bg-white transition-all cursor-pointer ${
+                  aria-label={`Afficher ${product.name}`}
+                  className={`relative w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden bg-[#FFFFFF] shrink-0 transition-all cursor-pointer ${
                     isSelected
                       ? 'ring-2 ring-black scale-105 opacity-100'
                       : 'opacity-65 hover:opacity-100'
                   }`}
                 >
-                  <img
-                    src={look.modelImageUrl}
-                    alt={look.fallbackName}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover object-top"
-                  />
+                  {thumbSrc && (
+                    <img
+                      src={thumbSrc}
+                      alt={product.name}
+                      referrerPolicy="no-referrer"
+                      className={`w-full h-full ${
+                        product.runwayModelImageUrl
+                          ? 'object-cover object-top'
+                          : 'object-contain p-1'
+                      }`}
+                    />
+                  )}
                 </button>
               );
             })}

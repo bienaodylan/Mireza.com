@@ -71,6 +71,7 @@
         "sku": { "type": "string", "maxLength": 64 },
         "externalShopifyHandle": { "type": "string", "maxLength": 180 },
         "images": { "type": "array" },
+        "runwayModelImageUrl": { "type": "string", "maxLength": 500 },
         "colors": { "type": "array" },
         "sizes": { "type": "array" },
         "regularPriceXof": { "type": "integer" },

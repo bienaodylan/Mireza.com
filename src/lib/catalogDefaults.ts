@@ -178,6 +178,7 @@ export interface SeedProductInput {
   categoryName: string;
   sku: string;
   images: string[];
+  runwayModelImageUrl?: string | null;
   colors: { name: string; hex: string }[];
   sizes: string[];
   regularPriceXof: number;
@@ -205,6 +206,7 @@ export const INITIAL_JERSEY_PRODUCTS: SeedProductInput[] = [
       "/assets/shopify/products/bahamas-jersey__0.png",
       "/assets/shopify/products/bahamas-jersey__1.png"
     ],
+    "runwayModelImageUrl": "/assets/mireza/runway_bahamas_jersey.jpg",
     "colors": [
       {
         "name": "Edition 01",
@@ -244,6 +246,7 @@ export const INITIAL_JERSEY_PRODUCTS: SeedProductInput[] = [
       "/assets/shopify/products/jamaica-jersey__1.jpg",
       "/assets/shopify/products/jamaica-jersey__2.jpg"
     ],
+    "runwayModelImageUrl": "/assets/mireza/runway_jamaica_jersey.jpg",
     "colors": [
       {
         "name": "Edition 01",
@@ -402,6 +405,7 @@ export const INITIAL_BIKINI_PRODUCTS: SeedProductInput[] = [
       "/assets/shopify/products/bresil-bikini__1.jpg",
       "/assets/shopify/products/bresil-bikini__2.jpg"
     ],
+    "runwayModelImageUrl": "/assets/mireza/runway_bresil_bikini.jpg",
     "colors": [
       {
         "name": "Edition 01",
@@ -485,6 +489,7 @@ export const INITIAL_BIKINI_PRODUCTS: SeedProductInput[] = [
       "/assets/shopify/products/bahamas-bikini-top-1__0.png",
       "/assets/shopify/products/bahamas-bikini-top-1__1.png"
     ],
+    "runwayModelImageUrl": "/assets/mireza/runway_saint_lucia_bikini.jpg",
     "colors": [
       {
         "name": "Edition 01",
@@ -1104,6 +1109,7 @@ export const INITIAL_SET_PRODUCTS: SeedProductInput[] = [
       "/assets/shopify/products/cote-d-ivoire-short__0.png",
       "/assets/shopify/products/cote-d-ivoire-short__1.png"
     ],
+    "runwayModelImageUrl": "/assets/mireza/runway_ivoire_set.jpg",
     "colors": [
       {
         "name": "Edition 01",
@@ -1147,6 +1153,7 @@ export const INITIAL_SET_PRODUCTS: SeedProductInput[] = [
       "/assets/shopify/products/cuba-t-shirt-copie__1.png",
       "/assets/shopify/products/cuba-t-shirt-copie__2.png"
     ],
+    "runwayModelImageUrl": "/assets/mireza/runway_guyane_set.jpg",
     "colors": [
       {
         "name": "Edition 01",

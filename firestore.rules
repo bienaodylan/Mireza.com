@@ -95,7 +95,7 @@ service cloud.firestore {
         ]) &&
         data.keys().hasOnly([
           'name', 'slug', 'description', 'categoryId', 'categoryName', 'sku',
-          'externalShopifyHandle', 'images', 'colors', 'sizes', 'regularPriceXof',
+          'externalShopifyHandle', 'images', 'runwayModelImageUrl', 'colors', 'sizes', 'regularPriceXof',
           'promoPriceXof', 'lowStockThreshold', 'status', 'isNewDrop', 'newDropOrder',
           'isFeatured', 'featuredOrder', 'isPreorder', 'preorderLimit',
           'preorderEstimateDate', 'seoTitle', 'seoDescription', 'createdAt', 'updatedAt'
@@ -108,6 +108,7 @@ service cloud.firestore {
         data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 64 &&
         (!('externalShopifyHandle' in data) || data.externalShopifyHandle == null || (data.externalShopifyHandle is string && data.externalShopifyHandle.size() <= 180)) &&
         data.images is list && data.images.size() <= 12 && (data.images.size() == 0 || data.images[0] is string) &&
+        (!('runwayModelImageUrl' in data) || data.runwayModelImageUrl == null || (data.runwayModelImageUrl is string && data.runwayModelImageUrl.size() <= 500)) &&
         data.colors is list && data.colors.size() <= 12 && (data.colors.size() == 0 || data.colors[0] is string) &&
         data.sizes is list && data.sizes.size() <= 12 && (data.sizes.size() == 0 || data.sizes[0] is string) &&
         data.regularPriceXof is int && data.regularPriceXof >= 0 &&

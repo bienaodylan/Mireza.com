@@ -135,6 +135,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         sku: p.sku,
         externalShopifyHandle: p.slug,
         images: p.images,
+        runwayModelImageUrl: p.runwayModelImageUrl ?? null,
         colors: p.colors.map((c) => c.name),
         sizes: p.sizes,
         regularPriceXof: p.regularPriceXof,
@@ -385,12 +386,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             if (seedMatch) {
               return {
                 ...raw,
-                images: seedMatch.images,
-                categoryName: seedMatch.categoryName,
-                isNewDrop: seedMatch.isNewDrop,
-                newDropOrder: seedMatch.newDropOrder,
-                isFeatured: seedMatch.isFeatured,
-                featuredOrder: seedMatch.featuredOrder,
+                images: raw.images && raw.images.length > 0 ? raw.images : seedMatch.images,
+                runwayModelImageUrl:
+                  raw.runwayModelImageUrl !== undefined && raw.runwayModelImageUrl !== null && raw.runwayModelImageUrl !== ''
+                    ? raw.runwayModelImageUrl
+                    : seedMatch.runwayModelImageUrl ?? null,
+                categoryName: raw.categoryName || seedMatch.categoryName,
+                isNewDrop: typeof raw.isNewDrop === 'boolean' ? raw.isNewDrop : seedMatch.isNewDrop,
+                newDropOrder: typeof raw.newDropOrder === 'number' ? raw.newDropOrder : seedMatch.newDropOrder,
+                isFeatured: typeof raw.isFeatured === 'boolean' ? raw.isFeatured : seedMatch.isFeatured,
+                featuredOrder: typeof raw.featuredOrder === 'number' ? raw.featuredOrder : seedMatch.featuredOrder,
               };
             }
             return raw;

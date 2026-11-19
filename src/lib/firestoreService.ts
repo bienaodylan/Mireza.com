@@ -219,6 +219,7 @@ export async function seedInitialCatalogClient(actorEmail: string): Promise<{ se
           sku: p.sku,
           externalShopifyHandle: p.slug,
           images: p.images,
+          runwayModelImageUrl: p.runwayModelImageUrl ?? null,
           colors: p.colors.map((c) => c.name),
           sizes: p.sizes,
           regularPriceXof: p.regularPriceXof,
@@ -465,6 +466,7 @@ export async function ensureFullSampleCatalog(actorEmail: string): Promise<{ add
               isPreorder: Boolean(seed.isPreorder),
               preorderEstimateDate: seed.preorderEstimateDate ?? null,
               images: seed.images,
+              runwayModelImageUrl: seed.runwayModelImageUrl ?? null,
               updatedAt: serverTimestamp(),
             },
           });
@@ -485,6 +487,7 @@ export async function ensureFullSampleCatalog(actorEmail: string): Promise<{ add
           sku: p.sku,
           externalShopifyHandle: p.slug,
           images: p.images,
+          runwayModelImageUrl: p.runwayModelImageUrl ?? null,
           colors: p.colors.map((c) => c.name),
           sizes: p.sizes,
           regularPriceXof: p.regularPriceXof,
@@ -584,15 +587,22 @@ export async function saveProductAndVariants(
     const prodRef = doc(db, 'products', id);
     const existingSnap = await getDoc(prodRef);
 
+    const cleanProductData: Record<string, any> = {};
+    for (const [k, v] of Object.entries(productData)) {
+      if (v !== undefined && k !== 'id' && k !== 'createdAt' && k !== 'updatedAt') {
+        cleanProductData[k] = v;
+      }
+    }
+
     const batch = writeBatch(db);
     if (existingSnap.exists()) {
       batch.update(prodRef, {
-        ...productData,
+        ...cleanProductData,
         updatedAt: serverTimestamp(),
       });
     } else {
       batch.set(prodRef, {
-        ...productData,
+        ...cleanProductData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

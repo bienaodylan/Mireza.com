@@ -47,6 +47,7 @@ export function AdminProducts({
     categoryId: categories[0]?.id || 'cat_set',
     sku: '',
     imagesText: MIREZA_IMAGES.jerseyBahamas,
+    runwayModelImageUrl: '',
     regularPriceXof: 25000,
     promoPriceXof: '',
     lowStockThreshold: 5,
@@ -220,6 +221,7 @@ export function AdminProducts({
       categoryId: defaultCat?.id || 'cat_set',
       sku: generatedSku,
       imagesText: MIREZA_IMAGES.jerseyBahamas,
+      runwayModelImageUrl: '',
       regularPriceXof: 28000,
       promoPriceXof: '',
       lowStockThreshold: 5,
@@ -249,6 +251,7 @@ export function AdminProducts({
       categoryId: prod.categoryId,
       sku: prod.sku,
       imagesText: (prod.images || []).join('\n'),
+      runwayModelImageUrl: prod.runwayModelImageUrl || '',
       regularPriceXof: prod.regularPriceXof,
       promoPriceXof: prod.promoPriceXof ? String(prod.promoPriceXof) : '',
       lowStockThreshold: prod.lowStockThreshold ?? 5,
@@ -375,6 +378,7 @@ export function AdminProducts({
           categoryName: cat?.name || 'Clothing',
           sku: form.sku.trim(),
           images: orderedImages,
+          runwayModelImageUrl: form.runwayModelImageUrl.trim() || null,
           colors,
           sizes,
           regularPriceXof: Math.round(Number(form.regularPriceXof)),
@@ -936,68 +940,144 @@ export function AdminProducts({
             </div>
 
             {/* Collections & Pre-Order — Square, Zero Borders */}
-            <div className="bg-[#F7F7F7] p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs rounded-none">
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 font-bold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.isNewDrop}
-                    onChange={(e) => setForm({ ...form, isNewDrop: e.target.checked })}
-                    className="accent-black"
-                  />
-                  <span>Include in New Drop</span>
-                </label>
-                {form.isNewDrop && (
-                  <input
-                    type="number"
-                    placeholder="Order"
-                    value={form.newDropOrder}
-                    onChange={(e) => setForm({ ...form, newDropOrder: Number(e.target.value) })}
-                    className="w-full rounded-none bg-white px-2.5 py-1.5 focus:outline-none"
-                  />
-                )}
+            <div className="bg-[#F7F7F7] p-4 space-y-4 text-xs rounded-none">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 font-bold cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.isNewDrop}
+                      onChange={(e) => setForm({ ...form, isNewDrop: e.target.checked })}
+                      className="accent-black"
+                    />
+                    <span>Nouvelle Collection (Défilé Accueil)</span>
+                  </label>
+                  {form.isNewDrop && (
+                    <input
+                      type="number"
+                      placeholder="Ordre d’affichage"
+                      value={form.newDropOrder}
+                      onChange={(e) => setForm({ ...form, newDropOrder: Number(e.target.value) })}
+                      className="w-full rounded-none bg-white px-2.5 py-1.5 focus:outline-none"
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 font-bold cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.isFeatured}
+                      onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
+                      className="accent-black"
+                    />
+                    <span>Featured on Homepage</span>
+                  </label>
+                  {form.isFeatured && (
+                    <input
+                      type="number"
+                      placeholder="Order"
+                      value={form.featuredOrder}
+                      onChange={(e) => setForm({ ...form, featuredOrder: Number(e.target.value) })}
+                      className="w-full rounded-none bg-white px-2.5 py-1.5 focus:outline-none"
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 font-bold cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.isPreorder}
+                      onChange={(e) => setForm({ ...form, isPreorder: e.target.checked })}
+                      className="accent-black"
+                    />
+                    <span>Enable Pre-Order</span>
+                  </label>
+                  {form.isPreorder && (
+                    <input
+                      type="text"
+                      placeholder="Est. date (e.g. Dec 15)"
+                      value={form.preorderEstimateDate}
+                      onChange={(e) => setForm({ ...form, preorderEstimateDate: e.target.value })}
+                      className="w-full rounded-none bg-white px-2.5 py-1.5 focus:outline-none"
+                    />
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 font-bold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.isFeatured}
-                    onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
-                    className="accent-black"
-                  />
-                  <span>Featured on Homepage</span>
-                </label>
-                {form.isFeatured && (
-                  <input
-                    type="number"
-                    placeholder="Order"
-                    value={form.featuredOrder}
-                    onChange={(e) => setForm({ ...form, featuredOrder: Number(e.target.value) })}
-                    className="w-full rounded-none bg-white px-2.5 py-1.5 focus:outline-none"
-                  />
-                )}
-              </div>
+              {/* Runway Mannequin Photo for Nouvelle Collection Showcase */}
+              <div className="bg-white p-3.5 space-y-2.5 rounded-none">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <span className="font-bold uppercase tracking-wider text-black block">
+                      Photo Mannequin Défilé (Nouvelle Collection — Fond Blanc)
+                    </span>
+                    <span className="text-[11px] font-light text-black/55">
+                      Affichée automatiquement dans le carrousel de mannequins sur la page d’accueil dès que « Nouvelle Collection » est coché.
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="px-3 py-1.5 rounded-none bg-black text-white font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer hover:bg-black/85">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{uploadingImage ? 'Upload...' : 'Importer Mannequin'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingImage}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingImage(true);
+                          try {
+                            const url = await uploadAdminImage(file);
+                            setForm((prev) => ({
+                              ...prev,
+                              runwayModelImageUrl: url,
+                              isNewDrop: true,
+                            }));
+                            onToast('Photo mannequin ajoutée au défilé Nouvelle Collection.', 'success');
+                          } catch (err: any) {
+                            onToast(err?.message || 'Impossible d’importer la photo mannequin.', 'error');
+                          } finally {
+                            setUploadingImage(false);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </label>
+                    {form.runwayModelImageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, runwayModelImageUrl: '' }))}
+                        className="px-2.5 py-1.5 rounded-none bg-[#F7F7F7] text-black font-bold uppercase tracking-wider hover:bg-black hover:text-white cursor-pointer"
+                      >
+                        Retirer
+                      </button>
+                    )}
+                  </div>
+                </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 font-bold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.isPreorder}
-                    onChange={(e) => setForm({ ...form, isPreorder: e.target.checked })}
-                    className="accent-black"
-                  />
-                  <span>Enable Pre-Order</span>
-                </label>
-                {form.isPreorder && (
+                <div className="flex items-start gap-3">
+                  {form.runwayModelImageUrl && (
+                    <div className="w-20 bg-white rounded-none overflow-hidden shrink-0">
+                      <img
+                        src={form.runwayModelImageUrl}
+                        alt="Mannequin défilé"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-auto block"
+                      />
+                    </div>
+                  )}
                   <input
                     type="text"
-                    placeholder="Est. date (e.g. Dec 15)"
-                    value={form.preorderEstimateDate}
-                    onChange={(e) => setForm({ ...form, preorderEstimateDate: e.target.value })}
-                    className="w-full rounded-none bg-white px-2.5 py-1.5 focus:outline-none"
+                    placeholder="/assets/mireza/runway_... ou URL de la photo mannequin fond blanc"
+                    value={form.runwayModelImageUrl}
+                    onChange={(e) => setForm({ ...form, runwayModelImageUrl: e.target.value })}
+                    className="flex-1 rounded-none bg-[#F7F7F7] px-3 py-2 text-xs font-light focus:outline-none"
                   />
-                )}
+                </div>
               </div>
             </div>
 

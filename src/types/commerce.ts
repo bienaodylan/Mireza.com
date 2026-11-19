@@ -51,6 +51,7 @@ export interface Product {
   sku: string;
   externalShopifyHandle?: string | null;
   images: string[];
+  runwayModelImageUrl?: string | null;
   colors: string[];
   sizes: string[];
   regularPriceXof: number;
