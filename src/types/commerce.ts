@@ -210,25 +210,73 @@ export interface GalleryItem {
   tag: string;
 }
 
-export type HomepageSectionKey =
+export type BuiltinHomepageSectionKey =
   | 'hero'
-  | 'brand_intro'
-  | 'new_drop'
   | 'next_drop'
   | 'categories'
+  | 'fashion_discovery'
+  | 'brand_intro'
+  | 'new_drop'
   | 'featured'
   | 'mireza_world'
   | 'newsletter';
 
+export type HomepageSectionKey = BuiltinHomepageSectionKey | (string & {});
+
+export interface CollectionBannerConfig {
+  id: string;
+  title: string;
+  ctaLabel: string;
+  href: string;
+  imageUrl: string;
+}
+
+export interface CustomHomepageSection {
+  id: string;
+  layout: 'banner' | 'split' | 'duo';
+  theme?: 'dark' | 'light';
+  eyebrow?: string;
+  title: string;
+  body?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+  imageUrl: string;
+  secondaryTitle?: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaHref?: string;
+  secondaryImageUrl?: string;
+}
+
 export interface StorefrontConfig {
+  cmsVersion?: number;
   heroImageUrl: string;
   heroHeadline: string;
   heroSubheadline: string;
   heroCtaLabel?: string;
+  heroCtaHref?: string;
+  heroSecondaryCtaLabel?: string;
+  heroSecondaryCtaHref?: string;
+  nextDropLeftTitle?: string;
+  nextDropLeftBody?: string;
+  nextDropLeftCtaLabel?: string;
+  nextDropLeftCtaHref?: string;
+  nextDropLeftImageUrl?: string;
+  nextDropRightTitle?: string;
+  nextDropRightBody?: string;
+  nextDropRightCtaLabel?: string;
+  nextDropRightCtaHref?: string;
+  nextDropRightImageUrl?: string;
+  brandIntroEyebrow?: string;
   brandIntroTitle: string;
   brandIntroBody: string;
   brandIntroImageUrl: string;
+  brandIntroCtaLabel?: string;
+  brandIntroCtaHref?: string;
+  brandIntroSecondaryCtaLabel?: string;
+  brandIntroSecondaryCtaHref?: string;
   sectionOrder: HomepageSectionKey[];
+  collectionBanners?: CollectionBannerConfig[];
+  customSections?: CustomHomepageSection[];
   galleryItems: GalleryItem[];
   newsletterTitle: string;
   newsletterBody: string;

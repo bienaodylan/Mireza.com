@@ -202,3 +202,129 @@ export async function detectDominantColorsFromImageUrl(
     img.src = cleanUrl;
   });
 }
+
+export interface ImageBackgroundAnalysis {
+  hasTransparentOrWhiteBg: boolean;
+  isTransparentCutout: boolean;
+  isWhiteBackdrop: boolean;
+}
+
+const BG_ANALYSIS_CACHE = new Map<string, ImageBackgroundAnalysis>();
+
+/**
+ * Inspects perimeter & corner pixels on an offscreen canvas to distinguish:
+ * - Transparent PNG cutouts (no background)
+ * - Isolated pure-white studio backdrops
+ * - Full-bleed photos / colored studio backgrounds
+ */
+export async function analyzeProductImageBackground(
+  imageUrl: string
+): Promise<ImageBackgroundAnalysis> {
+  const cleanUrl = (imageUrl || '').trim();
+  const fallback: ImageBackgroundAnalysis = {
+    hasTransparentOrWhiteBg: false,
+    isTransparentCutout: false,
+    isWhiteBackdrop: false,
+  };
+  if (!cleanUrl) return fallback;
+
+  const cached = BG_ANALYSIS_CACHE.get(cleanUrl);
+  if (cached) return cached;
+
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return fallback;
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    if (!cleanUrl.startsWith('data:') && !cleanUrl.startsWith('/')) {
+      img.crossOrigin = 'anonymous';
+    }
+
+    img.onload = () => {
+      try {
+        const size = 64;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) {
+          resolve(fallback);
+          return;
+        }
+
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
+        const { data } = ctx.getImageData(0, 0, size, size);
+
+        let totalEdge = 0;
+        let transparentEdge = 0;
+        let pureWhiteEdge = 0;
+
+        const inspectPixel = (x: number, y: number) => {
+          const idx = (y * size + x) * 4;
+          const r = data[idx];
+          const g = data[idx + 1];
+          const b = data[idx + 2];
+          const a = data[idx + 3];
+          totalEdge += 1;
+          if (a < 235) {
+            transparentEdge += 1;
+          } else {
+            const maxC = Math.max(r, g, b);
+            const minC = Math.min(r, g, b);
+            if (r >= 240 && g >= 240 && b >= 240 && maxC - minC <= 14) {
+              pureWhiteEdge += 1;
+            }
+          }
+        };
+
+        // Sample 2px deep around all 4 borders
+        for (let i = 0; i < size; i++) {
+          inspectPixel(i, 0);
+          inspectPixel(i, 1);
+          inspectPixel(i, size - 1);
+          inspectPixel(i, size - 2);
+          inspectPixel(0, i);
+          inspectPixel(1, i);
+          inspectPixel(size - 1, i);
+          inspectPixel(size - 2, i);
+        }
+
+        // Check all 4 corners explicitly
+        const cornerCoords = [
+          [1, 1],
+          [size - 2, 1],
+          [1, size - 2],
+          [size - 2, size - 2],
+        ];
+        let transparentCorners = 0;
+        for (const [cx, cy] of cornerCoords) {
+          const a = data[(cy * size + cx) * 4 + 3];
+          if (a < 220) transparentCorners += 1;
+        }
+
+        const transparentRatio = totalEdge > 0 ? transparentEdge / totalEdge : 0;
+        const opaqueEdge = Math.max(1, totalEdge - transparentEdge);
+        const whiteRatio = pureWhiteEdge / opaqueEdge;
+
+        const isTransparentCutout = transparentRatio >= 0.12 || transparentCorners >= 2;
+        const isWhiteBackdrop = !isTransparentCutout && whiteRatio >= 0.78;
+        const result: ImageBackgroundAnalysis = {
+          hasTransparentOrWhiteBg: isTransparentCutout || isWhiteBackdrop,
+          isTransparentCutout,
+          isWhiteBackdrop,
+        };
+
+        BG_ANALYSIS_CACHE.set(cleanUrl, result);
+        resolve(result);
+      } catch {
+        resolve(fallback);
+      }
+    };
+
+    img.onerror = () => resolve(fallback);
+    img.src = cleanUrl;
+  });
+}
+

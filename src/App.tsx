@@ -30,6 +30,9 @@ function AppRouter() {
         {route.page === 'shop' && <CatalogPage mode="all" />}
         {route.page === 'new-drop' && <CatalogPage mode="new-drop" />}
         {route.page === 'category' && <CatalogPage mode="category" categorySlug={route.slug} />}
+        {route.page === 'collection' && (
+          <CatalogPage mode="collection" collectionSlug={route.slug} />
+        )}
         {route.page === 'product' && <ProductDetailPage slug={route.slug} />}
         {route.page === 'cart' && <CartPage />}
         {route.page === 'checkout' && <CheckoutPage />}

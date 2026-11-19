@@ -2,7 +2,12 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Product, ProductVariant } from '../../types/commerce';
 import { formatXOF, getAvailableStock, getColorHex, getProductAvailability } from '../../lib/format';
 import { useStore } from '../../context/StoreContext';
-import { detectDominantColorsFromImageUrl, DetectedColor } from '../../lib/colorDetector';
+import {
+  detectDominantColorsFromImageUrl,
+  DetectedColor,
+  analyzeProductImageBackground,
+  ImageBackgroundAnalysis,
+} from '../../lib/colorDetector';
 
 interface ProductCardProps {
   product: Product;
@@ -16,6 +21,8 @@ export function ProductCard({ product, variants }: ProductCardProps) {
   );
   const [imgError, setImgError] = useState(false);
   const [dominantColor, setDominantColor] = useState<DetectedColor | null>(null);
+  const [primaryBg, setPrimaryBg] = useState<ImageBackgroundAnalysis | null>(null);
+  const [secondaryBg, setSecondaryBg] = useState<ImageBackgroundAnalysis | null>(null);
 
   const availability = useMemo(
     () => getProductAvailability(product, variants),
@@ -107,18 +114,50 @@ export function ProductCard({ product, variants }: ProductCardProps) {
     };
   }, [hasCustomVariantColors, primaryImage]);
 
+  // Detect whether product photos are transparent/white cutouts or have real photo backgrounds
+  useEffect(() => {
+    let cancelled = false;
+    if (!primaryImage) {
+      setPrimaryBg(null);
+      return;
+    }
+    analyzeProductImageBackground(primaryImage).then((res) => {
+      if (!cancelled) setPrimaryBg(res);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [primaryImage]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!secondaryImage) {
+      setSecondaryBg(null);
+      return;
+    }
+    analyzeProductImageBackground(secondaryImage).then((res) => {
+      if (!cancelled) setSecondaryBg(res);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [secondaryImage]);
+
   const effectiveSwatches = hasCustomVariantColors
     ? colorSwatches
     : dominantColor
       ? [dominantColor]
       : colorSwatches;
 
+  const isPrimaryCutout = primaryBg ? primaryBg.hasTransparentOrWhiteBg : false;
+  const isSecondaryCutout = secondaryBg ? secondaryBg.hasTransparentOrWhiteBg : false;
+
   return (
-    <article className="group flex flex-col">
-      {/* Frameless Adaptive Media Surface */}
+    <article className="group flex flex-col h-full bg-white">
+      {/* Strictly Uniform 4:5 Media Surface — Seamless White Blending for Cutouts, Full Cover for Photo Backgrounds */}
       <div
         onClick={() => navigate(`/product/${product.slug}`)}
-        className="relative w-full aspect-[4/5] bg-[#F7F7F7] rounded-none overflow-hidden cursor-pointer"
+        className="relative w-full aspect-[4/5] bg-white rounded-none overflow-hidden cursor-pointer shrink-0"
       >
         {primaryImage && !imgError ? (
           <>
@@ -127,7 +166,11 @@ export function ProductCard({ product, variants }: ProductCardProps) {
               alt={product.name}
               referrerPolicy="no-referrer"
               onError={() => setImgError(true)}
-              className={`absolute inset-0 w-full h-full object-contain block transition-all duration-500 ease-out ${
+              className={`w-full h-full block transition-all duration-500 ease-out ${
+                isPrimaryCutout
+                  ? 'object-contain p-4 sm:p-5 bg-white'
+                  : 'object-cover object-top'
+              } ${
                 secondaryImage
                   ? 'group-hover:opacity-0'
                   : 'group-hover:scale-[1.03]'
@@ -138,12 +181,16 @@ export function ProductCard({ product, variants }: ProductCardProps) {
                 src={secondaryImage}
                 alt={`${product.name} alternate view`}
                 referrerPolicy="no-referrer"
-                className="absolute inset-0 w-full h-full object-contain bg-[#F7F7F7] opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"
+                className={`absolute inset-0 w-full h-full block opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out ${
+                  isSecondaryCutout
+                    ? 'object-contain p-4 sm:p-5 bg-white'
+                    : 'object-cover object-top'
+                }`}
               />
             )}
           </>
         ) : (
-          <div className="w-full py-24 flex flex-col items-center justify-center bg-[#F7F7F7] text-black/60 p-4 text-center">
+          <div className="w-full h-full flex flex-col items-center justify-center bg-white text-black/60 p-4 text-center">
             <span className="font-bold text-lg tracking-[0.2em] uppercase text-[#E9B9C8]">
               MIREZA
             </span>
@@ -182,7 +229,7 @@ export function ProductCard({ product, variants }: ProductCardProps) {
                     className={`px-2 py-0.5 rounded-none text-[10px] font-bold transition-colors ${
                       disabled
                         ? 'bg-black/[0.04] text-black/30 line-through cursor-not-allowed'
-                        : 'bg-[#F7F7F7] text-black hover:bg-black hover:text-white cursor-pointer'
+                        : 'bg-black/[0.05] text-black hover:bg-black hover:text-white cursor-pointer'
                     }`}
                   >
                     {v.size}
@@ -194,12 +241,12 @@ export function ProductCard({ product, variants }: ProductCardProps) {
         )}
       </div>
 
-      {/* Minimal Typography & Square Color Indicators */}
-      <div className="px-2 pt-3 pb-5 flex flex-col gap-1.5">
+      {/* Uniform Bottom Typography & Round Color Swatches */}
+      <div className="px-1 pt-2.5 pb-1 flex-1 flex flex-col justify-between gap-1.5">
         <button
           type="button"
           onClick={() => navigate(`/product/${product.slug}`)}
-          className="text-left text-[11px] font-bold uppercase tracking-[0.06em] text-black leading-snug hover:opacity-65 transition-opacity cursor-pointer"
+          className="text-left text-[11px] font-bold uppercase tracking-[0.06em] text-black leading-snug line-clamp-2 min-h-[2.4em] hover:opacity-65 transition-opacity cursor-pointer"
         >
           {product.name}
         </button>
@@ -215,7 +262,7 @@ export function ProductCard({ product, variants }: ProductCardProps) {
           </div>
 
           {effectiveSwatches.length > 0 && (
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               {effectiveSwatches.map((swatch) => {
                 const isSelected = hasCustomVariantColors && swatch.name === selectedColor;
                 return (
@@ -228,7 +275,7 @@ export function ProductCard({ product, variants }: ProductCardProps) {
                       if (hasCustomVariantColors) setSelectedColor(swatch.name);
                       else navigate(`/product/${product.slug}`);
                     }}
-                    className={`w-2.5 h-2.5 rounded-none transition-transform cursor-pointer ${
+                    className={`w-3 h-3 rounded-full border border-black/15 transition-transform cursor-pointer ${
                       isSelected ? 'ring-1 ring-black ring-offset-1 ring-offset-white scale-110' : ''
                     }`}
                     style={{ backgroundColor: swatch.hex }}

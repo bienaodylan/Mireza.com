@@ -246,22 +246,54 @@ service cloud.firestore {
           'freeShippingThresholdXof', 'updatedAt'
         ]) &&
         data.keys().hasOnly([
-          'heroImageUrl', 'heroHeadline', 'heroSubheadline', 'heroCtaLabel',
-          'brandIntroTitle', 'brandIntroBody', 'brandIntroImageUrl', 'sectionOrder',
+          'cmsVersion',
+          'heroImageUrl', 'heroHeadline', 'heroSubheadline', 'heroCtaLabel', 'heroCtaHref',
+          'heroSecondaryCtaLabel', 'heroSecondaryCtaHref',
+          'nextDropLeftTitle', 'nextDropLeftBody', 'nextDropLeftCtaLabel', 'nextDropLeftCtaHref', 'nextDropLeftImageUrl',
+          'nextDropRightTitle', 'nextDropRightBody', 'nextDropRightCtaLabel', 'nextDropRightCtaHref', 'nextDropRightImageUrl',
+          'brandIntroEyebrow', 'brandIntroTitle', 'brandIntroBody', 'brandIntroImageUrl',
+          'brandIntroCtaLabel', 'brandIntroCtaHref', 'brandIntroSecondaryCtaLabel', 'brandIntroSecondaryCtaHref',
+          'sectionOrder', 'collectionBanners', 'customSections',
           'galleryItems', 'newsletterTitle', 'newsletterBody', 'campaignBannerText',
           'campaignBannerEnabled', 'standardShippingXof', 'expressShippingXof',
           'freeShippingThresholdXof', 'supportEmail', 'supportPhone', 'updatedAt'
         ]) &&
+        (!('cmsVersion' in data) || (data.cmsVersion is int && data.cmsVersion >= 1)) &&
         data.heroImageUrl is string && data.heroImageUrl.size() <= 500 &&
         data.heroHeadline is string && data.heroHeadline.size() <= 200 &&
         data.heroSubheadline is string && data.heroSubheadline.size() <= 300 &&
+        (!('heroCtaLabel' in data) || data.heroCtaLabel == null || (data.heroCtaLabel is string && data.heroCtaLabel.size() <= 60)) &&
+        (!('heroCtaHref' in data) || data.heroCtaHref == null || (data.heroCtaHref is string && data.heroCtaHref.size() <= 200)) &&
+        (!('heroSecondaryCtaLabel' in data) || data.heroSecondaryCtaLabel == null || (data.heroSecondaryCtaLabel is string && data.heroSecondaryCtaLabel.size() <= 60)) &&
+        (!('heroSecondaryCtaHref' in data) || data.heroSecondaryCtaHref == null || (data.heroSecondaryCtaHref is string && data.heroSecondaryCtaHref.size() <= 200)) &&
+        (!('nextDropLeftTitle' in data) || data.nextDropLeftTitle == null || (data.nextDropLeftTitle is string && data.nextDropLeftTitle.size() <= 160)) &&
+        (!('nextDropLeftBody' in data) || data.nextDropLeftBody == null || (data.nextDropLeftBody is string && data.nextDropLeftBody.size() <= 400)) &&
+        (!('nextDropLeftCtaLabel' in data) || data.nextDropLeftCtaLabel == null || (data.nextDropLeftCtaLabel is string && data.nextDropLeftCtaLabel.size() <= 60)) &&
+        (!('nextDropLeftCtaHref' in data) || data.nextDropLeftCtaHref == null || (data.nextDropLeftCtaHref is string && data.nextDropLeftCtaHref.size() <= 200)) &&
+        (!('nextDropLeftImageUrl' in data) || data.nextDropLeftImageUrl == null || (data.nextDropLeftImageUrl is string && data.nextDropLeftImageUrl.size() <= 500)) &&
+        (!('nextDropRightTitle' in data) || data.nextDropRightTitle == null || (data.nextDropRightTitle is string && data.nextDropRightTitle.size() <= 160)) &&
+        (!('nextDropRightBody' in data) || data.nextDropRightBody == null || (data.nextDropRightBody is string && data.nextDropRightBody.size() <= 400)) &&
+        (!('nextDropRightCtaLabel' in data) || data.nextDropRightCtaLabel == null || (data.nextDropRightCtaLabel is string && data.nextDropRightCtaLabel.size() <= 60)) &&
+        (!('nextDropRightCtaHref' in data) || data.nextDropRightCtaHref == null || (data.nextDropRightCtaHref is string && data.nextDropRightCtaHref.size() <= 200)) &&
+        (!('nextDropRightImageUrl' in data) || data.nextDropRightImageUrl == null || (data.nextDropRightImageUrl is string && data.nextDropRightImageUrl.size() <= 500)) &&
+        (!('brandIntroEyebrow' in data) || data.brandIntroEyebrow == null || (data.brandIntroEyebrow is string && data.brandIntroEyebrow.size() <= 120)) &&
         data.brandIntroTitle is string && data.brandIntroTitle.size() <= 200 &&
         data.brandIntroBody is string && data.brandIntroBody.size() <= 1000 &&
         data.brandIntroImageUrl is string && data.brandIntroImageUrl.size() <= 500 &&
-        data.sectionOrder is list && data.sectionOrder.size() <= 20 &&
+        (!('brandIntroCtaLabel' in data) || data.brandIntroCtaLabel == null || (data.brandIntroCtaLabel is string && data.brandIntroCtaLabel.size() <= 60)) &&
+        (!('brandIntroCtaHref' in data) || data.brandIntroCtaHref == null || (data.brandIntroCtaHref is string && data.brandIntroCtaHref.size() <= 200)) &&
+        (!('brandIntroSecondaryCtaLabel' in data) || data.brandIntroSecondaryCtaLabel == null || (data.brandIntroSecondaryCtaLabel is string && data.brandIntroSecondaryCtaLabel.size() <= 60)) &&
+        (!('brandIntroSecondaryCtaHref' in data) || data.brandIntroSecondaryCtaHref == null || (data.brandIntroSecondaryCtaHref is string && data.brandIntroSecondaryCtaHref.size() <= 200)) &&
+        data.sectionOrder is list && data.sectionOrder.size() <= 30 && (data.sectionOrder.size() == 0 || data.sectionOrder[0] is string) &&
+        (!('collectionBanners' in data) || (data.collectionBanners is list && data.collectionBanners.size() <= 12)) &&
+        (!('customSections' in data) || (data.customSections is list && data.customSections.size() <= 24)) &&
         data.galleryItems is list && data.galleryItems.size() <= 24 &&
         data.newsletterTitle is string && data.newsletterTitle.size() <= 160 &&
         data.newsletterBody is string && data.newsletterBody.size() <= 400 &&
+        (!('campaignBannerText' in data) || data.campaignBannerText == null || (data.campaignBannerText is string && data.campaignBannerText.size() <= 200)) &&
+        (!('campaignBannerEnabled' in data) || data.campaignBannerEnabled is bool) &&
+        (!('supportEmail' in data) || data.supportEmail == null || (data.supportEmail is string && data.supportEmail.size() <= 254)) &&
+        (!('supportPhone' in data) || data.supportPhone == null || (data.supportPhone is string && data.supportPhone.size() <= 40)) &&
         data.standardShippingXof is int && data.standardShippingXof >= 0 &&
         data.expressShippingXof is int && data.expressShippingXof >= 0 &&
         data.freeShippingThresholdXof is int && data.freeShippingThresholdXof >= 0 &&

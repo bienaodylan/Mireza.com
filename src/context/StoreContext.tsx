@@ -29,6 +29,7 @@ export type RouteView =
   | { page: 'shop' }
   | { page: 'new-drop' }
   | { page: 'category'; slug: string }
+  | { page: 'collection'; slug: string }
   | { page: 'product'; slug: string }
   | { page: 'cart' }
   | { page: 'checkout' }
@@ -43,6 +44,9 @@ function parseHashOrPath(): RouteView {
   if (pathname === '/new-drop') return { page: 'new-drop' };
   if (pathname.startsWith('/category/')) {
     return { page: 'category', slug: pathname.replace('/category/', '') };
+  }
+  if (pathname.startsWith('/collection/')) {
+    return { page: 'collection', slug: pathname.replace('/collection/', '') };
   }
   if (pathname.startsWith('/product/')) {
     return { page: 'product', slug: pathname.replace('/product/', '') };
@@ -253,11 +257,62 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           const hasStaleSweatText =
             typeof raw.brandIntroBody === 'string' && raw.brandIntroBody.toLowerCase().includes('sweat wear');
 
+          const isLegacyCms = !raw.cmsVersion || raw.cmsVersion < 4;
+          const existingCustomKeys = Array.isArray(raw.sectionOrder)
+            ? raw.sectionOrder.filter((s) => typeof s === 'string' && s.startsWith('custom:'))
+            : [];
+          const patchedSectionOrder = isLegacyCms
+            ? [...DEFAULT_STOREFRONT_CONFIG.sectionOrder, ...existingCustomKeys]
+            : Array.isArray(raw.sectionOrder) && raw.sectionOrder.length > 0
+              ? raw.sectionOrder
+              : DEFAULT_STOREFRONT_CONFIG.sectionOrder;
+
+          const cleanLegacyDropLabel = (val: string | undefined, fallback: string) =>
+            !val || val.toLowerCase().includes('prochain drop') ? fallback : val;
+
           setStorefrontConfig({
             ...DEFAULT_STOREFRONT_CONFIG,
             ...raw,
             heroImageUrl: patchedHero || MIREZA_IMAGES.hero,
-            brandIntroImageUrl: patchedIntro || MIREZA_IMAGES.brandIntro,
+            heroSecondaryCtaLabel: isLegacyCms
+              ? cleanLegacyDropLabel(
+                  raw.heroSecondaryCtaLabel,
+                  DEFAULT_STOREFRONT_CONFIG.heroSecondaryCtaLabel || 'Nouvelle Collection'
+                )
+              : raw.heroSecondaryCtaLabel,
+            heroSecondaryCtaHref:
+              isLegacyCms && (!raw.heroSecondaryCtaHref || raw.heroSecondaryCtaHref === '/category/accessories')
+                ? DEFAULT_STOREFRONT_CONFIG.heroSecondaryCtaHref
+                : raw.heroSecondaryCtaHref || DEFAULT_STOREFRONT_CONFIG.heroSecondaryCtaHref,
+            nextDropLeftCtaLabel: isLegacyCms
+              ? cleanLegacyDropLabel(
+                  raw.nextDropLeftCtaLabel,
+                  DEFAULT_STOREFRONT_CONFIG.nextDropLeftCtaLabel || 'Découvrir la Collection'
+                )
+              : raw.nextDropLeftCtaLabel || DEFAULT_STOREFRONT_CONFIG.nextDropLeftCtaLabel,
+            nextDropLeftCtaHref:
+              isLegacyCms && (!raw.nextDropLeftCtaHref || raw.nextDropLeftCtaHref === '/category/accessories')
+                ? DEFAULT_STOREFRONT_CONFIG.nextDropLeftCtaHref
+                : raw.nextDropLeftCtaHref || DEFAULT_STOREFRONT_CONFIG.nextDropLeftCtaHref,
+            nextDropRightCtaLabel:
+              isLegacyCms && (!raw.nextDropRightCtaLabel || raw.nextDropRightCtaLabel === 'Explorer New Drop')
+                ? DEFAULT_STOREFRONT_CONFIG.nextDropRightCtaLabel
+                : raw.nextDropRightCtaLabel || DEFAULT_STOREFRONT_CONFIG.nextDropRightCtaLabel,
+            nextDropRightCtaHref:
+              isLegacyCms && (!raw.nextDropRightCtaHref || raw.nextDropRightCtaHref === '/new-drop')
+                ? DEFAULT_STOREFRONT_CONFIG.nextDropRightCtaHref
+                : raw.nextDropRightCtaHref || DEFAULT_STOREFRONT_CONFIG.nextDropRightCtaHref,
+            brandIntroSecondaryCtaLabel: isLegacyCms
+              ? cleanLegacyDropLabel(
+                  raw.brandIntroSecondaryCtaLabel,
+                  DEFAULT_STOREFRONT_CONFIG.brandIntroSecondaryCtaLabel || 'Nouvelle Collection'
+                )
+              : raw.brandIntroSecondaryCtaLabel,
+            brandIntroSecondaryCtaHref:
+              isLegacyCms && (!raw.brandIntroSecondaryCtaHref || raw.brandIntroSecondaryCtaHref === '/category/accessories')
+                ? DEFAULT_STOREFRONT_CONFIG.brandIntroSecondaryCtaHref
+                : raw.brandIntroSecondaryCtaHref || DEFAULT_STOREFRONT_CONFIG.brandIntroSecondaryCtaHref,
+            brandIntroImageUrl: patchedIntro || DEFAULT_STOREFRONT_CONFIG.brandIntroImageUrl,
             brandIntroBody: hasStaleSweatText
               ? DEFAULT_STOREFRONT_CONFIG.brandIntroBody
               : raw.brandIntroBody || DEFAULT_STOREFRONT_CONFIG.brandIntroBody,
@@ -269,6 +324,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               typeof raw.campaignBannerText === 'string' && raw.campaignBannerText.toLowerCase().includes('sweat wear')
                 ? DEFAULT_STOREFRONT_CONFIG.campaignBannerText
                 : raw.campaignBannerText || DEFAULT_STOREFRONT_CONFIG.campaignBannerText,
+            sectionOrder: patchedSectionOrder,
+            collectionBanners:
+              Array.isArray(raw.collectionBanners) && raw.collectionBanners.length > 0
+                ? raw.collectionBanners
+                : DEFAULT_STOREFRONT_CONFIG.collectionBanners,
+            customSections: Array.isArray(raw.customSections) ? raw.customSections : [],
             galleryItems: patchedGallery || DEFAULT_STOREFRONT_CONFIG.galleryItems,
           });
         }

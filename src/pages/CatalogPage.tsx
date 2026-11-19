@@ -6,15 +6,47 @@ import { formatXOF, getProductAvailability } from '../lib/format';
 import { INITIAL_CATEGORIES } from '../lib/catalogDefaults';
 
 interface CatalogPageProps {
-  mode: 'all' | 'new-drop' | 'category';
+  mode: 'all' | 'new-drop' | 'category' | 'collection';
   categorySlug?: string;
+  collectionSlug?: string;
 }
 
 type SortOption = 'newest' | 'price-asc' | 'price-desc' | 'recent';
 
-export function CatalogPage({ mode, categorySlug }: CatalogPageProps) {
-  const { products, categories, variants, getProductVariants, loadingCatalog, navigate } =
-    useStore();
+interface CuratedCollectionDef {
+  slug: string;
+  title: string;
+  subtitle: string;
+  categoryIds?: string[];
+  onlyNewDrop?: boolean;
+}
+
+const CURATED_COLLECTIONS: Record<string, CuratedCollectionDef> = {
+  'casquettes-tapis': {
+    slug: 'casquettes-tapis',
+    title: 'Casquettes & Tapis MIREZA',
+    subtitle: 'Nouvelle Collection · Casquettes brodées multi-coloris et tapis tuftés atelier.',
+    categoryIds: ['cat_accessories'],
+  },
+  'nouvelle-collection': {
+    slug: 'nouvelle-collection',
+    title: 'Nouvelle Collection',
+    subtitle: 'Jerseys oversize en maille technique, bikinis iconiques et ensembles complets des îles.',
+    categoryIds: ['cat_jerseys', 'cat_swimwear', 'cat_set'],
+    onlyNewDrop: true,
+  },
+};
+
+export function CatalogPage({ mode, categorySlug, collectionSlug }: CatalogPageProps) {
+  const {
+    products,
+    categories,
+    variants,
+    storefrontConfig,
+    getProductVariants,
+    loadingCatalog,
+    navigate,
+  } = useStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedSize, setSelectedSize] = useState<string>('all');
   const [selectedColor, setSelectedColor] = useState<string>('all');
@@ -64,13 +96,61 @@ export function CatalogPage({ mode, categorySlug }: CatalogPageProps) {
     return Array.from(set);
   }, [variants]);
 
+  const activeCollectionObj = useMemo(() => {
+    if (mode !== 'collection' || !collectionSlug) return null;
+    const preset = CURATED_COLLECTIONS[collectionSlug];
+    if (preset) {
+      if (collectionSlug === 'casquettes-tapis') {
+        return {
+          ...preset,
+          title: storefrontConfig.nextDropLeftTitle || preset.title,
+          subtitle: storefrontConfig.nextDropLeftBody || preset.subtitle,
+        };
+      }
+      if (collectionSlug === 'nouvelle-collection') {
+        return {
+          ...preset,
+          title: storefrontConfig.nextDropRightTitle || preset.title,
+          subtitle: storefrontConfig.nextDropRightBody || preset.subtitle,
+        };
+      }
+      return preset;
+    }
+    const readable = collectionSlug
+      .split('-')
+      .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : ''))
+      .join(' ');
+    return {
+      slug: collectionSlug,
+      title: readable || 'Nouvelle Collection',
+      subtitle: 'Nouvelle Collection MIREZA',
+    } as CuratedCollectionDef;
+  }, [mode, collectionSlug, storefrontConfig]);
+
   const filteredProducts = useMemo(() => {
     const list = products.filter((p) => {
       if (mode === 'new-drop' && !p.isNewDrop) return false;
       if (mode === 'category' && activeCategoryObj && p.categoryId !== activeCategoryObj.id) {
         return false;
       }
-      if (mode !== 'category' && selectedCategory !== 'all' && p.categoryId !== selectedCategory) {
+      if (mode === 'collection' && activeCollectionObj) {
+        if (
+          activeCollectionObj.categoryIds &&
+          activeCollectionObj.categoryIds.length > 0 &&
+          !activeCollectionObj.categoryIds.includes(p.categoryId)
+        ) {
+          return false;
+        }
+        if (activeCollectionObj.onlyNewDrop && !p.isNewDrop) {
+          return false;
+        }
+      }
+      if (
+        mode !== 'category' &&
+        mode !== 'collection' &&
+        selectedCategory !== 'all' &&
+        p.categoryId !== selectedCategory
+      ) {
         return false;
       }
 
@@ -128,6 +208,7 @@ export function CatalogPage({ mode, categorySlug }: CatalogPageProps) {
     products,
     mode,
     activeCategoryObj,
+    activeCollectionObj,
     selectedCategory,
     maxPriceXof,
     selectedSize,
@@ -147,23 +228,37 @@ export function CatalogPage({ mode, categorySlug }: CatalogPageProps) {
   };
 
   const title =
-    mode === 'new-drop'
-      ? 'New Drop 01'
-      : activeCategoryObj
-        ? activeCategoryObj.name
-        : 'View All';
+    mode === 'collection' && activeCollectionObj
+      ? activeCollectionObj.title
+      : mode === 'new-drop'
+        ? 'Nouvelle Collection'
+        : activeCategoryObj
+          ? activeCategoryObj.name
+          : 'View All';
 
   return (
-    <main className="pt-20 pb-20 max-w-[1600px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 min-h-screen">
+    <main className="pt-20 pb-20 max-w-[1440px] mx-auto px-2 sm:px-4 md:px-6 min-h-screen bg-white">
       {/* Collection Title & Filter|Sort Trigger — Zero Border Lines */}
-      <div className="pt-6 pb-3 px-1 flex items-center justify-between gap-4">
-        <div className="flex items-start gap-1">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-[-0.02em] text-black">
-            {title}
-          </h1>
-          <sup className="text-[11px] font-bold text-[#D17493] tabular-nums mt-1.5">
-            {filteredProducts.length}
-          </sup>
+      <div className="pt-6 pb-3 px-1 flex items-end justify-between gap-4">
+        <div className="space-y-1">
+          {mode === 'collection' && (
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#D17493]">
+              Nouvelle Collection
+            </p>
+          )}
+          <div className="flex items-start gap-1">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-[-0.02em] text-black">
+              {title}
+            </h1>
+            <sup className="text-[11px] font-bold text-[#D17493] tabular-nums mt-1.5">
+              {filteredProducts.length}
+            </sup>
+          </div>
+          {mode === 'collection' && activeCollectionObj?.subtitle && (
+            <p className="text-xs font-light text-black/65 max-w-xl">
+              {activeCollectionObj.subtitle}
+            </p>
+          )}
         </div>
 
         <button
@@ -194,19 +289,30 @@ export function CatalogPage({ mode, categorySlug }: CatalogPageProps) {
         </button>
         <button
           type="button"
-          onClick={() => navigate('/new-drop')}
+          onClick={() => navigate('/collection/nouvelle-collection')}
           className={`whitespace-nowrap shrink-0 cursor-pointer transition-colors ${
-            mode === 'new-drop'
+            mode === 'new-drop' || (mode === 'collection' && collectionSlug === 'nouvelle-collection')
               ? 'font-bold text-black'
               : 'font-light text-black/65 hover:text-black'
           }`}
         >
-          New Drop
+          Nouvelle Collection
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate('/collection/casquettes-tapis')}
+          className={`whitespace-nowrap shrink-0 cursor-pointer transition-colors ${
+            mode === 'collection' && collectionSlug === 'casquettes-tapis'
+              ? 'font-bold text-black'
+              : 'font-light text-black/65 hover:text-black'
+          }`}
+        >
+          Casquettes &amp; Tapis
         </button>
         {visibleCategories.map((cat) => {
           const isActive =
             (mode === 'category' && activeCategoryObj?.id === cat.id) ||
-            (mode !== 'category' && selectedCategory === cat.id);
+            (mode !== 'category' && mode !== 'collection' && selectedCategory === cat.id);
           return (
             <button
               key={cat.id}
@@ -225,28 +331,28 @@ export function CatalogPage({ mode, categorySlug }: CatalogPageProps) {
         })}
       </div>
 
-      {/* Full-Width 4-Column Tightly-Packed Grid */}
+      {/* Uniform 4-Column Product Grid — Identical Card Heights Across Every Menu */}
       {loadingCatalog ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 xl:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-[#F7F7F7] animate-pulse" />
+            <div key={i} className="aspect-[4/5] bg-black/[0.03] animate-pulse" />
           ))}
         </div>
       ) : filteredProducts.length === 0 ? (
-        <div className="bg-[#F7F7F7] p-12 text-center space-y-4">
+        <div className="bg-black/[0.02] p-12 text-center space-y-4">
           <p className="font-editorial text-2xl text-black">
-            No pieces match these filters
+            Aucune pièce ne correspond à ces filtres
           </p>
           <button
             type="button"
             onClick={resetFilters}
             className="px-6 py-3 rounded-none bg-black text-white text-xs font-bold uppercase tracking-[0.18em] cursor-pointer"
           >
-            Clear Filters
+            Réinitialiser les filtres
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 xl:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-4 sm:gap-y-8 items-stretch">
           {filteredProducts.map((p) => (
             <ProductCard
               key={p.id}

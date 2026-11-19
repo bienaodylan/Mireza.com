@@ -729,10 +729,17 @@ export async function adjustVariantStock(
 
 export async function saveStorefrontConfig(config: StorefrontConfig, actorEmail: string) {
   try {
-    await setDoc(doc(db, 'storefront_config', 'main'), {
-      ...config,
-      updatedAt: serverTimestamp(),
-    });
+    const cleanPayload: Record<string, any> = {};
+    for (const [k, v] of Object.entries(config)) {
+      if (v !== undefined) cleanPayload[k] = v;
+    }
+    cleanPayload.cmsVersion = 4;
+    cleanPayload.standardShippingXof = Math.max(0, Math.round(Number(config.standardShippingXof) || 0));
+    cleanPayload.expressShippingXof = Math.max(0, Math.round(Number(config.expressShippingXof) || 0));
+    cleanPayload.freeShippingThresholdXof = Math.max(0, Math.round(Number(config.freeShippingThresholdXof) || 0));
+    cleanPayload.updatedAt = serverTimestamp();
+
+    await setDoc(doc(db, 'storefront_config', 'main'), cleanPayload);
     await logAudit(actorEmail, 'UPDATE_STOREFRONT_CMS', 'storefront_config', 'main', 'Updated storefront layout & CMS');
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, 'storefront_config/main');

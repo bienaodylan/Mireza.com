@@ -6,6 +6,9 @@ export const MIREZA_IMAGES = {
   // Brand Intro & Next Drop editorial visuals
   brandIntro: '/assets/shopify_editorial/lookbook_group_crew.jpg',
   nextDropBanner: '/assets/mireza/next_drop_banner.jpg',
+  bannerJersey: '/assets/mireza/banner_jersey.jpg',
+  bannerBikini: '/assets/mireza/banner_bikini.jpg',
+  bannerSet: '/assets/mireza/banner_set.jpg',
   lookbookCrew: '/assets/shopify_editorial/lookbook_group_crew.jpg',
   lookbookParis: '/assets/shopify_editorial/lookbook_paris_sets.jpg',
   lookbookJersey: '/assets/shopify_editorial/ed_IMG_2435.jpg',
@@ -31,22 +34,60 @@ export const MIREZA_IMAGES = {
 };
 
 export const DEFAULT_STOREFRONT_CONFIG: StorefrontConfig = {
+  cmsVersion: 4,
   heroImageUrl: MIREZA_IMAGES.hero,
   heroHeadline: 'Caribbean Poise & Bold Silhouettes',
-  heroSubheadline: 'Jerseys, Bikinis, Sets, and Upcoming Accessories Drop crafted for sun and city.',
+  heroSubheadline: 'Jerseys, Bikinis, Sets et Nouvelles Collections pensés pour le soleil et la ville.',
   heroCtaLabel: 'Explore Collections',
+  heroCtaHref: '/shop',
+  heroSecondaryCtaLabel: 'Nouvelle Collection',
+  heroSecondaryCtaHref: '/collection/casquettes-tapis',
+  nextDropLeftTitle: 'Casquettes & Tapis MIREZA',
+  nextDropLeftBody:
+    'Nouvelle collection d’accessoires signature : casquettes brodées multi-coloris et tapis tuftés atelier.',
+  nextDropLeftCtaLabel: 'Découvrir la Collection',
+  nextDropLeftCtaHref: '/collection/casquettes-tapis',
+  nextDropLeftImageUrl: '/assets/mireza/next_drop_banner.jpg',
+  nextDropRightTitle: 'Nouvelle Collection',
+  nextDropRightBody:
+    'Jerseys oversize en maille technique, bikinis iconiques et ensembles complets des îles.',
+  nextDropRightCtaLabel: 'Découvrir la Collection',
+  nextDropRightCtaHref: '/collection/nouvelle-collection',
+  nextDropRightImageUrl: '/assets/shopify_editorial/lookbook_group_crew.jpg',
+  brandIntroEyebrow: "Sur Nous · L'Identité MIREZA",
   brandIntroTitle: 'MIREZA Caribbean. Soleil, Confiance, Identité.',
   brandIntroBody:
     'MIREZA unit maillots caribéens, ensembles ringer, jerseys en maille technique et accessoires signature (casquettes multi-couleurs & tapis) dans une allure solaire et minimaliste.',
-  brandIntroImageUrl: MIREZA_IMAGES.brandIntro,
-  sectionOrder: [
-    'hero',
-    'next_drop',
-    'categories',
-    'brand_intro',
-    'mireza_world',
-    'newsletter',
+  brandIntroImageUrl: '/assets/shopify_editorial/ed_archives.jpg',
+  brandIntroCtaLabel: 'Explorer Toutes les Collections',
+  brandIntroCtaHref: '/shop',
+  brandIntroSecondaryCtaLabel: 'Nouvelle Collection',
+  brandIntroSecondaryCtaHref: '/collection/casquettes-tapis',
+  sectionOrder: ['hero', 'next_drop', 'categories', 'fashion_discovery', 'brand_intro'],
+  collectionBanners: [
+    {
+      id: 'banner_jersey',
+      title: 'Jersey',
+      ctaLabel: 'Découvrir Jersey',
+      href: '/category/jersey',
+      imageUrl: '/assets/mireza/banner_jersey.jpg',
+    },
+    {
+      id: 'banner_bikini',
+      title: 'Bikini',
+      ctaLabel: 'Découvrir Bikini',
+      href: '/category/bikini',
+      imageUrl: '/assets/mireza/banner_bikini.jpg',
+    },
+    {
+      id: 'banner_set',
+      title: 'Set',
+      ctaLabel: 'Découvrir Set',
+      href: '/category/set',
+      imageUrl: '/assets/mireza/banner_set.jpg',
+    },
   ],
+  customSections: [],
   galleryItems: [
     {
       id: 'world_crew',
@@ -80,7 +121,7 @@ export const DEFAULT_STOREFRONT_CONFIG: StorefrontConfig = {
   newsletterTitle: 'Join the Private List',
   newsletterBody:
     'Receive early access to numbered drops, Accessories Drop 02 (Casquettes & Tapis), and Abidjan pop-up invitations.',
-  campaignBannerText: 'Prochain Drop : Casquettes & Tapis MIREZA — Bientôt disponible',
+  campaignBannerText: 'Nouvelle Collection : Casquettes & Tapis MIREZA — Disponible',
   campaignBannerEnabled: true,
   standardShippingXof: 3500,
   expressShippingXof: 7500,
